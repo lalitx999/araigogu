@@ -42,8 +42,9 @@ run() {
   AI_PID=$!
   trap 'kill $AI_PID 2>/dev/null || true' EXIT INT TERM
   cd "$ROOT/web"
-  echo "web: http://localhost:8000   ai-service: http://localhost:8001/health"
-  "$PY" manage.py runserver 127.0.0.1:8000
+  WEB_PORT="${WEB_PORT:-8000}"
+  echo "web: http://localhost:$WEB_PORT   ai-service: http://localhost:8001/health"
+  "$PY" manage.py runserver "127.0.0.1:$WEB_PORT"
 }
 
 case "${1:-run}" in
