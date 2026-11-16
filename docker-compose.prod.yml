@@ -23,7 +23,15 @@ services:
     restart: unless-stopped
     command: uvicorn app.main:app --host 0.0.0.0 --port 8001 --workers 2
     environment:
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      # Any provider left empty is skipped; at least one key is needed for real answers.
+      # Text chat: Groq (fast) -> DeepSeek -> Gemini -> OpenAI. Images always go to Gemini (OpenAI as fallback).
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-chat}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
       AI_INTERNAL_TOKEN: ${AI_INTERNAL_TOKEN}
     healthcheck:

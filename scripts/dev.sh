@@ -37,7 +37,9 @@ setup() {
 
 run() {
   [ -x "$PY" ] || { echo "run 'scripts/dev.sh setup' first"; exit 1; }
-  [ -z "${OPENAI_API_KEY:-}" ] && echo "note: OPENAI_API_KEY is empty -> AI runs in degraded mode (set it in .env)"
+  if [ -z "${GEMINI_API_KEY:-}${GROQ_API_KEY:-}${DEEPSEEK_API_KEY:-}${OPENAI_API_KEY:-}" ]; then
+    echo "note: no AI key set (GEMINI/GROQ/DEEPSEEK/OPENAI) -> AI runs in degraded mode (set one in .env)"
+  fi
   ( cd "$ROOT/ai-service" && exec "$PY" -m uvicorn app.main:app --host 127.0.0.1 --port 8001 ) &
   AI_PID=$!
   trap 'kill $AI_PID 2>/dev/null || true' EXIT INT TERM

@@ -37,7 +37,7 @@ scripts/dev.sh test      # เทสต์ทั้งหมด
 ```
 
 - เว็บ http://localhost:8000 · แอดมิน /admin/ · ai-service http://localhost:8001/health
-- secret อ่านจาก `.env` (สุ่มใหม่ ไม่ได้ copy จากโปรเจกต์เดิม) ใส่ `OPENAI_API_KEY` **ตัวใหม่** เพื่อให้ AI ตอบจริง
+- secret อ่านจาก `.env` (สุ่มใหม่ ไม่ได้ copy จากโปรเจกต์เดิม) ใส่คีย์ AI อย่างน้อยหนึ่งตัว (`GEMINI_API_KEY`, `GROQ_API_KEY`, `DEEPSEEK_API_KEY`, `OPENAI_API_KEY`) เพื่อให้ AI ตอบจริง แชทข้อความใช้ Groq ก่อน รูปภาพใช้ Gemini
   ถ้าเว้นว่าง: แชทแจ้งว่า AI ยังไม่พร้อม (ไม่บันทึกอะไร), โพสต์ลงได้แต่ติด `needs_review` ให้แอดมินตรวจ, ไม่มีคอมเมนต์พี่ริว
 - ตรวจ end-to-end 17 ข้อ (ตอนเปิดเซิร์ฟเวอร์อยู่): `scripts/smoke.sh`
 - ใช้ MySQL บน localhost แทน SQLite: `USE_MYSQL=1 scripts/dev.sh setup` (ต้อง `brew install mysql pkg-config` และสร้าง DB/user ตามหัวไฟล์ `scripts/dev.sh`)
