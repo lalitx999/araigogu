@@ -118,8 +118,7 @@
             </header>
 
             <!-- Welcome Stage (When no messages yet) -->
-            <section class="gem-welcome-stage welcome-message" id="welcomeStage" {% if chat_messages
-                %}style="display: none;" {% endif %}>
+            <section class="gem-welcome-stage welcome-message" id="welcomeStage" {% if chat_messages %}style="display: none;"{% endif %}>
                 <div class="gem-welcome-inner">
                     <div class="gem-spark gem-spark-lg">
                         <i class="bi bi-stars"></i>
@@ -267,7 +266,7 @@
     <!-- Scripts -->
     <script>
         const sessionId = '{{ current.pk }}';
-        window.CURRENT_SESSION_ID = {{ current.pk |default: 'null' }};
+        window.CURRENT_SESSION_ID = {{ current.pk|default:'null' }};
         window.CURRENT_LANGUAGE = "{{ current_language|default:'ja' }}";
 
         function escapeHtml(text) {
