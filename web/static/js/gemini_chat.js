@@ -208,7 +208,7 @@
         const reader = new FileReader();
         reader.onload = function (e) {
             if (attachThumb) attachThumb.src = e.target.result;
-            if (attachName) attachName.textContent = file.name || "ภาพจาก Clipboard";
+            if (attachName) attachName.textContent = (file.name || "ภาพจาก Clipboard") + " (✨ ส่งให้ Gemini วิเคราะห์ภาพอัตโนมัติ)";
             if (attachSize) attachSize.textContent = (file.size / 1024).toFixed(1) + " KB";
             if (attachPreview) attachPreview.style.display = "flex";
             if (sendBtn) sendBtn.disabled = false;
@@ -350,9 +350,27 @@
         const bodyHtml = renderMarkdown(markdownText);
         const escapedRaw = encodeURIComponent(markdownText);
 
+        let badgeHtml = "";
+        if (modelName) {
+            let label = modelName;
+            let icon = "bi-cpu";
+            if (modelName.includes("gemini")) {
+                label = "Google Gemini 2.5 Flash (วิเคราะห์ภาพ)";
+                icon = "bi-image";
+            } else if (modelName.includes("gpt-oss") || modelName.includes("groq") || modelName.includes("llama")) {
+                label = "Groq (แชทเร็วทันใจ)";
+                icon = "bi-lightning-charge";
+            } else if (modelName.includes("deepseek")) {
+                label = "DeepSeek (วิเคราะห์ไวยากรณ์)";
+                icon = "bi-mortarboard";
+            }
+            badgeHtml = `<div class="mb-1"><span class="badge bg-light text-muted border rounded-pill" style="font-size: 0.72rem; font-weight: 500;"><i class="bi ${icon} me-1 text-primary"></i>${label}</span></div>`;
+        }
+
         row.innerHTML = `
             <span class="gem-spark"><i class="bi bi-stars"></i></span>
             <div class="gem-bot-body">
+                ${badgeHtml}
                 <div class="gem-rendered-content">${bodyHtml}</div>
                 <div class="gem-actions-row">
                     <button type="button" class="gem-act-btn copy-btn" data-text="${escapedRaw}" title="คัดลอกข้อความ">
@@ -465,18 +483,24 @@
             // Append typing indicator
             appendTypingIndicator();
 
-            // Prepare model choice
-            const selectedModelVal = modelSelect ? modelSelect.value : "gemini:gemini-2.5-flash";
-            const [provider, modelName] = selectedModelVal.split(":");
+        // Prepare model choice: If image is attached, auto-route to Gemini!
+        let provider, modelName;
+        if (file) {
+            provider = "gemini";
+            modelName = "gemini-2.5-flash";
+        } else {
+            const selectedModelVal = modelSelect ? modelSelect.value : "groq:openai/gpt-oss-120b";
+            [provider, modelName] = selectedModelVal.split(":");
+        }
 
-            // Send via FormData
-            const formData = new FormData();
-            formData.append("message", text);
-            formData.append("model_provider", provider || "gemini");
-            formData.append("model_name", modelName || "gemini-2.5-flash");
-            if (file) {
-                formData.append("image", file);
-            }
+        // Send via FormData
+        const formData = new FormData();
+        formData.append("message", text);
+        formData.append("model_provider", provider || "groq");
+        formData.append("model_name", modelName || "openai/gpt-oss-120b");
+        if (file) {
+            formData.append("image", file);
+        }
 
             const sendUrl = sessionId ? `/chat/${sessionId}/send/` : "/chat/new/";
 

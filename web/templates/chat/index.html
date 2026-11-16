@@ -242,18 +242,18 @@
                             </button>
                         </div>
 
-                        <!-- Footer: Model Selector -->
+                        <!-- Footer: Model Selector & Task Division Indicator -->
                         <div class="gem-composer-footer">
-                            <div class="d-flex align-items-center gap-2">
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
                                 <i class="bi bi-cpu text-muted"></i>
-                                <select id="modelSelect" class="gem-model-select" title="เลือกโมเดล AI ที่ต้องการใช้">
-                                    <option value="gemini:gemini-2.5-flash" selected>✨ Gemini 2.5 Flash (ฉลาด &amp;
-                                        ตรวจรูปภาพ)</option>
-                                    <option value="groq:llama-3.3-70b-versatile">⚡ Groq (เร็วทันใจ ฝึกสนทนา)</option>
-                                    <option value="deepseek:deepseek-chat">🧠 DeepSeek (คิดวิเคราะห์ไวยากรณ์ลึก)
-                                    </option>
-                                    <option value="openai:gpt-4o-mini">🤖 OpenAI (gpt-4o-mini)</option>
+                                <select id="modelSelect" class="gem-model-select" title="เลือกโมเดล AI สำหรับแชทข้อความ">
+                                    <option value="groq:openai/gpt-oss-120b" selected>⚡ Groq (แชททั่วไป โต้ตอบเร็วทันใจ)</option>
+                                    <option value="deepseek:deepseek-chat">🧠 DeepSeek (วิเคราะห์ไวยากรณ์ลึกซึ้ง)</option>
+                                    <option value="gemini:gemini-2.5-flash">✨ Google Gemini 2.5 Flash</option>
                                 </select>
+                                <span class="badge bg-light text-muted border rounded-pill px-2 py-1 small d-none d-md-inline">
+                                    <i class="bi bi-image me-1 text-primary"></i>แนบภาพ = ส่งให้ Gemini วิเคราะห์อัตโนมัติ
+                                </span>
                             </div>
                             <span class="d-none d-sm-inline">กด Enter ส่ง · Shift+Enter ขึ้นบรรทัดใหม่</span>
                         </div>

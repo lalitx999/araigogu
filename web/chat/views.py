@@ -80,7 +80,7 @@ def create(request):
     return redirect("chat:detail", pk=session.pk)
 
 
-def _deliver(user, session, text, model_provider="gemini", model_name="gemini-2.5-flash",
+def _deliver(user, session, text, model_provider="groq", model_name="",
              image_file=None, image_data_url=""):
     """Send one user message through the AI and persist the exchange. Returns (payload, http_status)."""
     text = (text or "").strip()
@@ -105,6 +105,16 @@ def _deliver(user, session, text, model_provider="gemini", model_name="gemini-2.
     if len(text) > MAX_MESSAGE_LEN:
         return {"error": "invalid_message"}, 400
 
+    # Policy Routing:
+    # 1. Images attached -> Gemini (Vision / Multimodal)
+    # 2. Text only -> Groq (ultra-fast) or DeepSeek (reasoning)
+    if images:
+        model_provider = "gemini"
+        model_name = "gemini-2.5-flash"
+    elif not model_provider or model_provider not in ("groq", "deepseek", "openai"):
+        model_provider = "groq"
+        model_name = "openai/gpt-oss-120b"
+
     limit = settings.AI_DAILY_CHAT_LIMIT
     if limit:
         today = timezone.localtime().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -126,21 +136,24 @@ def _deliver(user, session, text, model_provider="gemini", model_name="gemini-2.
         # Persist nothing: the client can retry, so saving would create duplicates.
         return {"error": result["reply"], "degraded": True}, 503
 
+    actual_model = result.get("model_used") or model_name or "default"
+    actual_provider = result.get("provider_used") or model_provider or "default"
+
     user_msg = Message.objects.create(
         session=session,
         role="user",
         content=text,
         topic=result.get("topic", ""),
-        model_provider=model_provider,
-        model_name=model_name,
+        model_provider=actual_provider,
+        model_name=actual_model,
         image=image_file if image_file else None,
     )
     assistant_msg = Message.objects.create(
         session=session,
         role="assistant",
         content=result["reply"],
-        model_provider=model_provider,
-        model_name=model_name,
+        model_provider=actual_provider,
+        model_name=actual_model,
     )
     # Automatically update session title if it's the first message and still default
     if session.messages.count() <= 2 and text:
@@ -152,8 +165,8 @@ def _deliver(user, session, text, model_provider="gemini", model_name="gemini-2.
         "reply": result["reply"],
         "user_message": user_msg.content,
         "image_url": user_msg.image_url,
-        "model_used": model_name,
-        "provider_used": model_provider,
+        "model_used": actual_model,
+        "provider_used": actual_provider,
         "degraded": False,
     }, 200
 

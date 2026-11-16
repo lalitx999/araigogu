@@ -37,22 +37,42 @@ async def chat(llm: LLM, req: ChatRequest) -> ChatResponse:
     else:
         messages.append({"role": "user", "content": req.message})
 
-    reply = await llm.complete(
-        messages,
-        provider=req.model_provider,
-        custom_model=req.model_name,
-        has_images=has_images,
-        temperature=0.7,
-        max_tokens=1500,
-    )
+    if hasattr(llm, "complete_chat"):
+        reply, provider_used, model_used = await llm.complete_chat(
+            messages,
+            provider=req.model_provider,
+            custom_model=req.model_name,
+            has_images=has_images,
+            temperature=0.7,
+            max_tokens=1500,
+        )
+    else:
+        reply = await llm.complete(
+            messages,
+            provider=req.model_provider,
+            custom_model=req.model_name,
+            has_images=has_images,
+            temperature=0.7,
+            max_tokens=1500,
+        )
+        provider_used = "gemini" if has_images else (req.model_provider or "groq")
+        model_used = req.model_name
 
     if not reply:
-        return ChatResponse(reply=CHAT_FALLBACK, topic=topic, degraded=True)
+        return ChatResponse(
+            reply=CHAT_FALLBACK,
+            topic=topic,
+            degraded=True,
+            model_used=model_used or "",
+            provider_used=provider_used or "",
+        )
 
     return ChatResponse(
         reply=reply.strip(),
         topic=topic,
         degraded=False,
+        model_used=model_used or "",
+        provider_used=provider_used or "",
     )
 
 

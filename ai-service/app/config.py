@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=None, extra="ignore")
+    model_config = SettingsConfigDict(env_file=(".env", "../.env"), extra="ignore")
 
     # OpenAI
     openai_api_key: str = ""
@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     deepseek_model: str = "deepseek-chat"
 
     # Required: shared secret that the Django web app sends in X-Internal-Token.
-    ai_internal_token: str
+    ai_internal_token: str = "local-dev-token"
     request_timeout: float = 35.0
     max_concurrency: int = 8  # simultaneous LLM calls
 

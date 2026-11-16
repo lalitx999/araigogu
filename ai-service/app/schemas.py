@@ -16,7 +16,7 @@ class ChatRequest(BaseModel):
     language_name: str = Field(default="", max_length=60)   # Thai display name sent by the web app (120 languages)
     learning_goal: str = Field(default="", max_length=1000)
     history: list[ChatMessage] = Field(default_factory=list, max_length=30)
-    model_provider: str = Field(default="gemini", max_length=30)  # gemini, groq, deepseek, openai
+    model_provider: str = Field(default="groq", max_length=30)  # groq, deepseek, gemini, openai
     model_name: str = Field(default="", max_length=60)
     images: list[str] = Field(default_factory=list, max_length=5)
 
@@ -25,6 +25,8 @@ class ChatResponse(BaseModel):
     reply: str
     topic: str
     degraded: bool = False
+    model_used: str = ""
+    provider_used: str = ""
 
 
 class ModerateRequest(BaseModel):
