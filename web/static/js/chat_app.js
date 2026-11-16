@@ -230,8 +230,16 @@
         e.preventDefault();
         useTopic(btn.dataset.prompt, btn.dataset.needsImage === "1");
     }));
-    // arriving from another page via /?topic=key
-    const topicKey = new URLSearchParams(window.location.search).get("topic");
+    // arriving from another page via /?topic=key, or shared into the installed app (?text= / ?title= / ?url=)
+    const params = new URLSearchParams(window.location.search);
+    const shared = [params.get("title"), params.get("text"), params.get("url")].filter(Boolean).join("\n").trim();
+    if (shared && !cfg.locked) {
+        window.history.replaceState(null, "", window.location.pathname);
+        useTopic(shared.slice(0, 2000), false);
+    } else if (params.get("source")) {
+        window.history.replaceState(null, "", window.location.pathname);
+    }
+    const topicKey = params.get("topic");
     if (topicKey) {
         const link = document.querySelector('.side-item.topic-btn[href$="topic=' + CSS.escape(topicKey) + '"]');
         window.history.replaceState(null, "", window.location.pathname);

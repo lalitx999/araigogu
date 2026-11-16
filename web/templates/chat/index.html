@@ -9,7 +9,7 @@
     data-locked="{% if language_locked %}1{% else %}0{% endif %}"
     data-send-new-url="{% url 'chat:send_new' %}"
     data-guest-reset-url="{% url 'chat:guest_reset' %}"
-    data-bot-avatar="{% static 'img/Ryupro.png' %}"{% endblock %}
+    data-bot-avatar="{% static 'img/ryu-128.webp' %}"{% endblock %}
 
 {% block top_left %}
                 <div class="dropdown">
@@ -56,6 +56,12 @@
                     </button>
                     {% endfor %}
                 </div>
+                {% if is_guest %}
+                <p class="welcome-links">
+                    พี่ริวคือ AI ติวเตอร์ที่อธิบายเป็นภาษาไทย ทดลองฟรีวันละ {{ quota.limit }} ข้อความ ·
+                    <a href="{% url 'about' %}">เกี่ยวกับ</a> · <a href="{% url 'guides' %}">คู่มือ</a> · <a href="{% url 'faq' %}">คำถามที่พบบ่อย</a>
+                </p>
+                {% endif %}
             </div>
 
             <!-- Conversation -->
@@ -70,7 +76,7 @@
                 </div>
                 {% else %}
                 <div class="msg msg-bot">
-                    <img src="{% static 'img/Ryupro.png' %}" alt="พี่ริว" class="bot-avatar">
+                    <img src="{% static 'img/ryu-128.webp' %}" alt="พี่ริว" class="bot-avatar">
                     <div class="bot-body">
                         <div class="md" data-raw="{{ msg.content|urlencode }}">{{ msg.content|linebreaksbr }}</div>
                         <div class="msg-actions">
@@ -165,4 +171,4 @@
 {% endif %}
 {% endblock %}
 
-{% block extra_js %}<script src="{% static 'js/chat_app.js' %}"></script>{% endblock %}
+{% block extra_js %}<script src="{% static 'js/chat_app.js' %}" defer></script>{% endblock %}

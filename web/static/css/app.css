@@ -377,3 +377,13 @@ a { color: inherit; }
     *, *::before, *::after { transition: none !important; animation: none !important; }
 }
 .min-w-0 { min-width: 0; }
+
+/* the mascot is pixel art: keep it crisp when scaled */
+img[src*="/img/ryu-"], img[src*="/img/icons/"] { image-rendering: pixelated; }
+
+/* installed app (PWA): keep content clear of notches and the home indicator */
+.side { padding-bottom: max(12px, env(safe-area-inset-bottom)); padding-top: max(10px, env(safe-area-inset-top)); }
+@media (display-mode: standalone) {
+    .top { padding-top: env(safe-area-inset-top); height: calc(60px + env(safe-area-inset-top)); }
+    .install-item, [data-install] { display: none !important; }
+}

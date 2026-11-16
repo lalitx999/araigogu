@@ -1,45 +1,7 @@
-{% load static humanize %}<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token }}">
-    <meta name="description" content="เรียนภาษาได้ทุกที่ แค่แชทกับพี่ริว AI ติวเตอร์ภาษา ทดลองใช้ฟรีไม่ต้องสมัคร">
-    <title>เกี่ยวกับ ARAI GO GU - เรียนภาษากับพี่ริว AI ติวเตอร์</title>
-    <link rel="icon" href="{% static 'img/ryupro.ico' %}">
-    {% include "app/_theme_init.html" %}
-    <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
-    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
-    <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
-    <link rel="stylesheet" href="{% static 'css/app.css' %}">
-    <link rel="stylesheet" href="{% static 'css/pages/about.css' %}">
-</head>
-<body class="about" data-qr-src="{% static 'vendor/qrcode/qrcode.js' %}">
-    <div class="bg-blur" aria-hidden="true"><span></span><span></span><span></span></div>
-
-    <header class="about-nav">
-        <a href="{% url 'home' %}" class="brand-lockup">
-            <img src="{% static 'img/Ryupro.png' %}" alt="" class="avatar avatar-sm">
-            <span class="brand">ARAI GO GU</span>
-        </a>
-        <nav class="about-links" aria-label="ส่วนของหน้า">
-            <a href="#how-to">วิธีใช้</a>
-            <a href="#features">ทำอะไรได้บ้าง</a>
-            <a href="#course-promo">คอร์สเรียน</a>
-            <a href="#support">สนับสนุน</a>
-        </nav>
-        <div class="d-flex align-items-center gap-2">
-            <button type="button" class="icon-btn" data-theme-toggle title="สลับธีม" aria-label="สลับธีม"><i class="bi bi-circle-half"></i></button>
-            {% if user.is_authenticated %}
-            <a href="{% url 'home' %}" class="btn-solid btn-sm-pill">ไปที่แชท</a>
-            {% else %}
-            <a href="{% url 'accounts:login' %}" class="btn-ghost btn-sm-pill d-none d-sm-inline-flex">เข้าสู่ระบบ</a>
-            <a href="{% url 'home' %}" class="btn-solid btn-sm-pill">ลองฟรี</a>
-            {% endif %}
-        </div>
-    </header>
-
-    <main>
+{% extends "public/base.html" %}
+{% load static humanize %}
+{% block jsonld %}{{ jsonld }}{% endblock %}
+{% block content %}
         <section class="hero">
             <div class="hero-text">
                 <span class="tag mb-3"><i class="bi bi-stars"></i>AI ติวเตอร์ภาษาส่วนตัว</span>
@@ -59,7 +21,7 @@
                 <div class="mock panel">
                     <div class="mock-msg mock-user">"I goes to school yesterday" ถูกไหมครับ</div>
                     <div class="mock-bot">
-                        <img src="{% static 'img/Ryupro.png' %}" alt="" class="avatar avatar-sm">
+                        <img src="{% static 'img/ryu-128.webp' %}" alt="" class="avatar avatar-sm">
                         <div>
                             <strong>ยังไม่ถูกครับ</strong> เมื่อพูดถึงอดีต (yesterday) ต้องใช้กริยาช่องที่ 2
                             <div class="mock-fix">I <b>went</b> to school yesterday.</div>
@@ -90,13 +52,23 @@
             </div>
         </section>
 
+        <section class="about-section" id="faq-teaser">
+            <div class="section-head"><h2>คำถามที่พบบ่อย</h2><a href="{% url 'faq' %}">ดูทั้งหมด <i class="bi bi-arrow-right"></i></a></div>
+            <div class="faq-list">
+                {% for item in faq_preview %}
+                <details class="faq-item panel"><summary>{{ item.q }}<i class="bi bi-plus-lg"></i></summary><p>{{ item.a }}</p></details>
+                {% endfor %}
+            </div>
+        </section>
+
         <section class="about-section" id="course-promo">
             <div class="panel course">
                 <div class="course-text">
                     <h2>คอร์สเรียนแนะแนวโดยพี่ริว</h2>
                     <p>เรียนภาษาแบบเจาะลึกกับคอร์สที่ออกแบบโดย AI ผู้เชี่ยวชาญ พร้อมรับรองผลความเข้าใจ</p>
                 </div>
-                <img src="{% static 'img/course.png' %}" alt="คอร์สเรียนแนะแนวโดยพี่ริว" class="course-img" loading="lazy">
+                <img src="{% static 'img/course-800.webp' %}" srcset="{% static 'img/course-800.webp' %} 800w, {% static 'img/course.webp' %} 1200w"
+                     sizes="(max-width: 991px) 100vw, 540px" width="1200" height="675" alt="คอร์สเรียนแนะแนวโดยพี่ริว" class="course-img" loading="lazy" decoding="async">
             </div>
         </section>
 
@@ -109,20 +81,4 @@
                 <div class="pay-tags"><span class="tag">QR Code</span><span class="tag">บัตรเครดิต</span><span class="tag">PromptPay</span><span class="tag">TrueMoney</span></div>
             </div>
         </section>
-    </main>
-
-    <footer class="about-foot">
-        <div class="brand-lockup">
-            <img src="{% static 'img/Ryupro.png' %}" alt="" class="avatar avatar-sm">
-            <span class="brand">ARAI GO GU</span>
-        </div>
-        <p class="small-note mb-0">ผู้ช่วยสอนภาษาอัจฉริยะ พัฒนาทักษะภาษาได้ทุกที่ทุกเวลา · <i class="bi bi-envelope"></i> contact@araigogu.online</p>
-        <p class="small-note mb-0">&copy; {% now "Y" %} Arai Go GU</p>
-    </footer>
-
-    {% include "app/_support_modal.html" %}
-    <div class="toast-pill" id="toast" role="status" aria-live="polite"></div>
-    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-    <script src="{% static 'js/app.js' %}"></script>
-</body>
-</html>
+{% endblock %}

@@ -5,13 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token }}">
     <title>{% block title %}พี่ริว AI ติวเตอร์ภาษา{% endblock %} | ARAI GO GU</title>
-    <link rel="icon" href="{% static 'img/ryupro.ico' %}">
+    {% include "app/_head_meta.html" %}
     {% include "app/_theme_init.html" %}
     <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
     <link rel="stylesheet" href="{% static 'css/app.css' %}">
     {% block extra_css %}{% endblock %}
+    {% block jsonld %}{{ jsonld|default:'' }}{% endblock %}
 </head>
 
 <body class="shell" data-session-id="{{ current.pk|default:'' }}" data-home-url="{% url 'home' %}"
@@ -38,10 +39,11 @@
 
 {% block modals %}{% endblock %}
 {% include "app/_support_modal.html" %}
+{% include "app/_install_modal.html" %}
 <div class="toast-pill" id="toast" role="status" aria-live="polite"></div>
 
-<script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-<script src="{% static 'js/app.js' %}"></script>
+<script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}" defer></script>
+<script src="{% static 'js/app.js' %}" defer></script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

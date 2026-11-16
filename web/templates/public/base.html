@@ -1,0 +1,69 @@
+{% load static humanize %}<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{% block title %}{{ meta.title }}{% endblock %} | ARAI GO GU</title>
+    {% include "app/_head_meta.html" %}
+    {% include "app/_theme_init.html" %}
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pages/about.css' %}">
+    {% block extra_css %}{% endblock %}
+    {% block jsonld %}{% endblock %}
+</head>
+<body class="about" data-qr-src="{% static 'vendor/qrcode/qrcode.js' %}">
+    <div class="bg-blur" aria-hidden="true"><span></span><span></span><span></span></div>
+
+    <header class="about-nav">
+        <a href="{% url 'home' %}" class="brand-lockup">
+            <img src="{% static 'img/ryu-128.webp' %}" alt="" class="avatar avatar-sm">
+            <span class="brand">ARAI GO GU</span>
+        </a>
+        <nav class="about-links" aria-label="ส่วนของหน้า">
+            <a href="{% url 'about' %}"{% if request.resolver_match.url_name == 'about' %} aria-current="page"{% endif %}>เกี่ยวกับ</a>
+            <a href="{% url 'guides' %}"{% if request.resolver_match.url_name == 'guides' or request.resolver_match.url_name == 'guide' %} aria-current="page"{% endif %}>คู่มือ</a>
+            <a href="{% url 'faq' %}"{% if request.resolver_match.url_name == 'faq' %} aria-current="page"{% endif %}>คำถามที่พบบ่อย</a>
+        </nav>
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="icon-btn" data-install hidden title="ติดตั้งแอป" aria-label="ติดตั้งแอป"><i class="bi bi-download"></i></button>
+            <button type="button" class="icon-btn" data-theme-toggle title="สลับธีม" aria-label="สลับธีม"><i class="bi bi-circle-half"></i></button>
+            {% if user.is_authenticated %}
+            <a href="{% url 'home' %}" class="btn-solid btn-sm-pill">ไปที่แชท</a>
+            {% else %}
+            <a href="{% url 'accounts:login' %}" class="btn-ghost btn-sm-pill d-none d-sm-inline-flex">เข้าสู่ระบบ</a>
+            <a href="{% url 'home' %}" class="btn-solid btn-sm-pill">ลองฟรี</a>
+            {% endif %}
+        </div>
+    </header>
+
+    <main>
+{% block content %}{% endblock %}
+    </main>
+
+    <footer class="about-foot">
+        <div class="brand-lockup">
+            <img src="{% static 'img/ryu-128.webp' %}" alt="" class="avatar avatar-sm">
+            <span class="brand">ARAI GO GU</span>
+        </div>
+        <nav class="foot-links" aria-label="ลิงก์ท้ายเว็บ">
+            <a href="{% url 'home' %}">แชทกับพี่ริว</a>
+            <a href="{% url 'about' %}">เกี่ยวกับ</a>
+            <a href="{% url 'guides' %}">คู่มือ</a>
+            <a href="{% url 'faq' %}">คำถามที่พบบ่อย</a>
+            <a href="{% url 'accounts:register' %}">สมัครสมาชิก</a>
+        </nav>
+        <p class="small-note mb-0"><i class="bi bi-envelope"></i> {{ contact_email|default:'contact@araigogu.online' }}</p>
+        <p class="small-note mb-0">&copy; {% now "Y" %} Arai Go GU</p>
+    </footer>
+
+    {% include "app/_support_modal.html" %}
+{% include "app/_install_modal.html" %}
+    <div class="toast-pill" id="toast" role="status" aria-live="polite"></div>
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}" defer></script>
+    <script src="{% static 'js/app.js' %}" defer></script>
+</body>
+</html>

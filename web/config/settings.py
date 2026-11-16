@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "accounts",
     "chat",
     "community",
+    "public",
 ]
 
 MIDDLEWARE = [
@@ -58,6 +59,7 @@ TEMPLATES = [{
         "django.contrib.auth.context_processors.auth",
         "django.contrib.messages.context_processors.messages",
         "chat.context_processors.app_shell",
+        "public.context_processors.seo",
     ]},
 }]
 
@@ -138,6 +140,12 @@ AI_TIMEOUT_CHAT = 30.0
 AI_TIMEOUT_SHORT = 12.0
 AI_CHAT_HISTORY_LIMIT = 10
 AI_DAILY_CHAT_LIMIT = int(env("AI_DAILY_CHAT_LIMIT", "100"))  # per user, 0 = unlimited
+
+# --- public site: canonical URLs for SEO, sitemap, llms.txt, Open Graph ---
+# e.g. https://araigogu.online ; falls back to https://$DOMAIN, then to the request's own host.
+SITE_URL = (env("SITE_URL", "") or (f"https://{env('DOMAIN')}" if env("DOMAIN") else "")).rstrip("/")
+SITE_NAME = "ARAI GO GU"
+CONTACT_EMAIL = env("CONTACT_EMAIL", "contact@araigogu.online")
 
 # --- guest trial (chat without an account) ---
 # Counted per browser session AND per IP; the IP cap is higher because a school or office

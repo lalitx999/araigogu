@@ -68,3 +68,52 @@ main { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
     .steps, .feature-grid { grid-template-columns: 1fr; }
     .hero-stats { gap: 20px; }
 }
+
+/* ---------- shared public pages: FAQ, guides ---------- */
+.about-links a[aria-current="page"] { background: var(--active); color: var(--ink); font-weight: 600; }
+.section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 20px; }
+.section-head h2 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 600; letter-spacing: -0.02em; margin: 0; }
+.section-head a { color: var(--muted); text-decoration: none; font-size: .9rem; }
+.section-head a:hover { color: var(--ink); }
+
+.faq-list { display: flex; flex-direction: column; gap: 10px; }
+.faq-item summary { list-style: none; cursor: pointer; padding: 16px 18px; font-weight: 600; display: flex; justify-content: space-between; gap: 12px; }
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary i { transition: transform .2s ease; color: var(--muted); }
+.faq-item[open] summary i { transform: rotate(45deg); }
+.faq-item p { padding: 0 18px 16px; margin: 0; color: var(--ink-2); line-height: 1.7; }
+
+.doc { max-width: 760px; margin: 0 auto; padding: 32px 0 24px; }
+.crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: .82rem; color: var(--muted); margin-bottom: 20px; }
+.crumbs a { color: var(--muted); text-decoration: none; }
+.crumbs a:hover { color: var(--ink); }
+.crumbs i { font-size: .7rem; }
+.doc-head { margin-bottom: 28px; }
+.doc-head h1 { font-size: clamp(1.8rem, 4.5vw, 2.6rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; margin: 0 0 12px; }
+.doc-lead { font-size: 1.08rem; color: var(--ink-2); line-height: 1.7; margin: 0 0 10px; }
+.faq-block { padding: 20px 22px; }
+.faq-block h2 { font-size: 1.08rem; font-weight: 600; margin: 0 0 8px; }
+.faq-block p { margin: 0; color: var(--ink-2); line-height: 1.75; }
+
+.summary-box { padding: 18px 20px; margin-bottom: 28px; }
+.summary-box h2 { font-size: .9rem; font-weight: 600; display: flex; gap: 8px; align-items: center; margin: 0 0 8px; color: var(--muted); }
+.summary-box p { margin: 0; line-height: 1.75; font-size: 1.02rem; }
+.doc-section { margin-bottom: 28px; }
+.doc-section h2 { font-size: 1.3rem; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 12px; }
+.doc-section p, .doc-section li { line-height: 1.8; color: var(--ink-2); }
+.doc-section ul, .doc-section ol { padding-left: 1.3em; }
+.doc-section li { margin: 4px 0; }
+
+.guide-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.guide-card { display: flex; flex-direction: column; gap: 8px; padding: 20px; text-decoration: none; color: var(--ink); transition: transform .15s ease, border-color .15s ease; }
+.guide-card:hover { transform: translateY(-2px); border-color: var(--faint); color: var(--ink); }
+.guide-card h2, .guide-card h3 { font-size: 1.05rem; font-weight: 600; margin: 6px 0 0; line-height: 1.4; }
+.guide-card p { color: var(--muted); font-size: .88rem; margin: 0; line-height: 1.6; flex: 1; }
+.guide-icon { width: 40px; height: 40px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; background: var(--hover); font-size: 1.1rem; }
+.guide-more { font-size: .85rem; font-weight: 600; }
+
+.cta-box { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 20px; margin: 28px 0; flex-wrap: wrap; }
+.foot-links { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.foot-links a { color: var(--muted); text-decoration: none; font-size: .86rem; }
+.foot-links a:hover { color: var(--ink); }
+.install-steps { padding: 0; }

@@ -9,7 +9,7 @@ from . import views
 
 urlpatterns = [
     path("", chat_home, name="home"),  # open the site, land in the chat
-    path("about/", views.about, name="about"),
+    path("", include("public.urls")),
     path("healthz", views.healthz, name="healthz"),
     path("dashboard/", dashboard, name="dashboard"),
     path("admin/", admin.site.urls),

@@ -68,11 +68,11 @@ class AuthTests(TestCase):
         User.objects.create_user("a@b.com", PW, full_name="A")
         r = self.client.get(reverse("home"))
         self.assertContains(r, 'data-guest="1"')
-        self.assertContains(r, "ทดลองใช้ฟรี")
+        self.assertContains(r, 'id="trialCard"')
         self.client.login(username="a@b.com", password=PW)
         r = self.client.get(reverse("home"))
         self.assertContains(r, 'data-guest="0"')
-        self.assertNotContains(r, "ทดลองใช้ฟรี")
+        self.assertNotContains(r, 'id="trialCard"')
         self.assertContains(self.client.get(reverse("about")), "Arai Go GU")  # the old landing page
 
 

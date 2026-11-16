@@ -1,0 +1,24 @@
+{% extends "public/base.html" %}
+{% block jsonld %}{{ jsonld }}{% endblock %}
+{% block content %}
+<article class="doc">
+    <nav class="crumbs" aria-label="เส้นทาง"><a href="{% url 'home' %}">หน้าหลัก</a><i class="bi bi-chevron-right"></i><span>คำถามที่พบบ่อย</span></nav>
+    <header class="doc-head">
+        <h1>คำถามที่พบบ่อยเกี่ยวกับ ARAI GO GU</h1>
+        <p class="doc-lead">รวมคำตอบเรื่องการใช้งานพี่ริว AI ติวเตอร์ภาษา ตั้งแต่ค่าใช้จ่าย ภาษาที่รองรับ ไปจนถึงการเก็บข้อมูล</p>
+        <p class="small-note">อัปเดตล่าสุด <time datetime="{{ updated|date:'Y-m-d' }}">{{ updated|date:'j/n/Y' }}</time> · โดยทีม ARAI GO GU</p>
+    </header>
+    <div class="faq-list">
+        {% for item in faqs %}
+        <section class="faq-block panel" id="q{{ forloop.counter }}">
+            <h2>{{ item.q }}</h2>
+            <p>{{ item.a }}</p>
+        </section>
+        {% endfor %}
+    </div>
+    <aside class="panel cta-box">
+        <div><strong>ยังมีคำถามอื่น</strong><div class="small-note">ลองถามพี่ริวโดยตรง หรือติดต่อ {{ contact_email }}</div></div>
+        <a href="{% url 'home' %}" class="btn-solid">ถามพี่ริวเลย</a>
+    </aside>
+</article>
+{% endblock %}

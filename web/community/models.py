@@ -38,7 +38,7 @@ class Comment(models.Model):
     @property
     def avatar_url(self):
         from django.templatetags.static import static
-        return self.author.avatar_url if self.author else static("img/Ryupro.png")
+        return self.author.avatar_url if self.author else static("img/ryu-128.webp")
 
     @property
     def display_name(self):

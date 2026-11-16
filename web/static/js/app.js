@@ -114,5 +114,40 @@
         document.head.appendChild(s);
     });
 
+    // ---------- PWA: service worker + install ----------
+    if ("serviceWorker" in navigator && window.isSecureContext) {
+        window.addEventListener("load", () => {
+            navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => { /* offline support is optional */ });
+        });
+    }
+
+    const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    let deferredPrompt = null;
+    const installButtons = () => document.querySelectorAll("[data-install]");
+    const showInstall = (on) => installButtons().forEach((b) => { b.hidden = !on; });
+
+    if (!standalone && isIOS) showInstall(true);                 // iOS has no install prompt: show instructions
+    window.addEventListener("beforeinstallprompt", (e) => {      // Chrome / Edge / Android
+        e.preventDefault();
+        deferredPrompt = e;
+        showInstall(true);
+    });
+    window.addEventListener("appinstalled", () => {
+        deferredPrompt = null;
+        showInstall(false);
+        toast("ติดตั้งแอปแล้ว");
+    });
+    document.addEventListener("click", (e) => {
+        if (!e.target.closest("[data-install]")) return;
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.finally(() => { deferredPrompt = null; showInstall(false); });
+        } else if (isIOS && window.bootstrap && $("iosInstallModal")) {
+            bootstrap.Modal.getOrCreateInstance($("iosInstallModal")).show();
+        }
+    });
+
     window.AGG = { $, csrf, post, toast, store };
 })();

@@ -56,7 +56,7 @@
                 {% for a in archetypes %}
                 <button type="button" class="char-card{% if profile.archetype == a.key %} active{% endif %}" data-key="{{ a.key }}" role="radio"
                         aria-checked="{% if profile.archetype == a.key %}true{% else %}false{% endif %}">
-                    <img src="{% static a.icon %}" alt="" loading="lazy" data-fallback="{% static 'img/Ryupro.png' %}">
+                    <img src="{% static a.icon %}" alt="" loading="lazy" data-fallback="{% static 'img/ryu-128.webp' %}">
                     <span class="char-name">{{ a.name }}</span>
                 </button>
                 {% endfor %}

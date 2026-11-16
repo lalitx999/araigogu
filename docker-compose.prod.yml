@@ -47,6 +47,8 @@ services:
       DJANGO_CSRF_TRUSTED_ORIGINS: https://${DOMAIN}
       DJANGO_BEHIND_PROXY: "1"
       DJANGO_SSL_REDIRECT: "0"   # Caddy already redirects http -> https
+      SITE_URL: https://${DOMAIN}   # canonical URLs, sitemap, Open Graph, llms.txt
+      GUEST_DAILY_CHAT_LIMIT: ${GUEST_DAILY_CHAT_LIMIT:-10}
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}

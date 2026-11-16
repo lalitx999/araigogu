@@ -172,3 +172,7 @@
     .bubble { max-width: 88%; }
     .picker-menu { width: min(320px, calc(100vw - 24px)); }
 }
+
+.dock { padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+.welcome-links { margin: 22px 0 0; font-size: .8rem; color: var(--muted); }
+.welcome-links a { color: var(--ink-2); }

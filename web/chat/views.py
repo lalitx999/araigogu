@@ -10,6 +10,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from config.ratelimit import client_ip
+from public import seo
 
 from .languages import LANGUAGE_NAMES, LANGUAGES
 from .models import ChatSession
@@ -59,6 +60,7 @@ def index(request, pk=None):
         return render(request, "chat/index.html", _page_context(
             state["language"], state["difficulty"], bool(state["messages"]), state["messages"], quota,
             is_guest=True, current=None,
+            jsonld=seo.jsonld(seo.organization(request), seo.website(request), seo.web_application(request)),
         ))
 
     if pk is None and (imported := request.session.pop(IMPORTED_CHAT_KEY, None)):

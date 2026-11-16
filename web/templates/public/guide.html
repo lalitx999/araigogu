@@ -1,0 +1,44 @@
+{% extends "public/base.html" %}
+{% block jsonld %}{{ jsonld }}{% endblock %}
+{% block content %}
+<article class="doc">
+    <nav class="crumbs" aria-label="เส้นทาง"><a href="{% url 'home' %}">หน้าหลัก</a><i class="bi bi-chevron-right"></i><a href="{% url 'guides' %}">คู่มือ</a><i class="bi bi-chevron-right"></i><span>{{ guide.title }}</span></nav>
+    <header class="doc-head">
+        <h1>{{ guide.title }}</h1>
+        <p class="doc-lead">{{ guide.description }}</p>
+        <p class="small-note">อัปเดตล่าสุด <time datetime="{{ updated|date:'Y-m-d' }}">{{ updated|date:'j/n/Y' }}</time> · โดยทีม ARAI GO GU</p>
+    </header>
+
+    <section class="panel summary-box" aria-labelledby="tldr">
+        <h2 id="tldr"><i class="bi bi-lightning-charge"></i>สรุปสั้น</h2>
+        <p>{{ guide.summary }}</p>
+    </section>
+
+    {% for s in guide.sections %}
+    <section class="doc-section">
+        <h2>{{ s.h }}</h2>
+        {% for para in s.p %}<p>{{ para }}</p>{% endfor %}
+        {% if s.list %}
+        {% if s.ordered %}<ol>{% for li in s.list %}<li>{{ li }}</li>{% endfor %}</ol>
+        {% else %}<ul>{% for li in s.list %}<li>{{ li }}</li>{% endfor %}</ul>{% endif %}
+        {% endif %}
+    </section>
+    {% endfor %}
+
+    <aside class="panel cta-box">
+        <div><strong>ลองกับพี่ริวตอนนี้</strong><div class="small-note">ทดลองฟรีไม่ต้องสมัคร คัดลอกตัวอย่างคำสั่งด้านบนไปวางในแชทได้เลย</div></div>
+        <a href="{% url 'home' %}" class="btn-solid">เริ่มแชทฟรี</a>
+    </aside>
+
+    {% if others %}
+    <section class="doc-section">
+        <h2>คู่มืออื่น</h2>
+        <div class="guide-grid">
+            {% for g in others %}
+            <a href="{% url 'guide' g.slug %}" class="panel guide-card"><span class="guide-icon"><i class="bi {{ g.icon }}"></i></span><h3>{{ g.title }}</h3><p>{{ g.description }}</p></a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</article>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% load static %}{% with t=meta.title|default:"พี่ริว AI ติวเตอร์ภาษา" %}
+    <meta name="description" content="{{ meta.description }}">
+    <meta name="robots" content="{{ meta.robots }}">
+    {% if meta.canonical %}<link rel="canonical" href="{{ meta.canonical }}">{% endif %}
+    <meta property="og:site_name" content="ARAI GO GU">
+    <meta property="og:locale" content="th_TH">
+    <meta property="og:type" content="{{ meta.og_type }}">
+    <meta property="og:title" content="{{ t }} | ARAI GO GU">
+    <meta property="og:description" content="{{ meta.description }}">
+    {% if meta.canonical %}<meta property="og:url" content="{{ meta.canonical }}">{% endif %}
+    <meta property="og:image" content="{{ meta.image }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="ARAI GO GU - เรียนภาษาด้วยการแชทกับ AI">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ t }} | ARAI GO GU">
+    <meta name="twitter:description" content="{{ meta.description }}">
+    <meta name="twitter:image" content="{{ meta.image }}">
+{% endwith %}
+    <!-- PWA -->
+    <link rel="manifest" href="{% url 'manifest' %}">
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b0b0c">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="พี่ริว">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="application-name" content="พี่ริว">
+    <link rel="icon" href="{% static 'img/icons/favicon-32.png' %}" sizes="32x32" type="image/png">
+    <link rel="icon" href="{% static 'img/ryupro.ico' %}" sizes="any">
+    <link rel="apple-touch-icon" href="{% static 'img/icons/apple-touch-icon.png' %}">
+    <!-- the two faces every page uses: fetch them with the CSS instead of after it -->
+    <link rel="preload" href="{% static 'fonts/inter-latin-wght-normal.woff2' %}" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{% static 'fonts/noto-sans-thai-thai-wght-normal.woff2' %}" as="font" type="font/woff2" crossorigin>

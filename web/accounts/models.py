@@ -47,7 +47,7 @@ class User(AbstractUser):
     @property
     def avatar_url(self):
         from django.templatetags.static import static
-        return static(f"img/archetypes/{self.archetype}.jpg") if self.archetype else static("img/Ryupro.png")
+        return static(f"img/archetypes/{self.archetype}.jpg") if self.archetype else static("img/ryu-128.webp")
 
 
 class ConsentLog(models.Model):

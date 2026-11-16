@@ -1,0 +1,21 @@
+{% extends "public/base.html" %}
+{% block jsonld %}{{ jsonld }}{% endblock %}
+{% block content %}
+<section class="doc">
+    <nav class="crumbs" aria-label="เส้นทาง"><a href="{% url 'home' %}">หน้าหลัก</a><i class="bi bi-chevron-right"></i><span>คู่มือ</span></nav>
+    <header class="doc-head">
+        <h1>คู่มือเรียนภาษากับ AI</h1>
+        <p class="doc-lead">วิธีใช้พี่ริวให้ได้ผลจริง พร้อมตัวอย่างคำสั่งที่คัดลอกไปใช้ได้ทันที</p>
+    </header>
+    <div class="guide-grid">
+        {% for g in guides %}
+        <a href="{% url 'guide' g.slug %}" class="panel guide-card">
+            <span class="guide-icon"><i class="bi {{ g.icon }}"></i></span>
+            <h2>{{ g.title }}</h2>
+            <p>{{ g.description }}</p>
+            <span class="guide-more">อ่านคู่มือ <i class="bi bi-arrow-right"></i></span>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

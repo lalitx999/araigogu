@@ -1,0 +1,38 @@
+{% autoescape off %}# ARAI GO GU: full reference
+
+> ARAI GO GU (อะไรโก๊ะกู) is a Thai web app for learning foreign languages by chatting with "P'Ryu" (พี่ริว), an AI language tutor that explains in Thai. Source: {{ base }}/ . Last reviewed {{ updated|date:"Y-m-d" }}.
+
+## Product facts
+
+- Supported languages: {{ facts.languages }}
+- Japanese levels: JLPT N5 to N1; other languages: beginner, intermediate, advanced
+- Free trial without an account: {{ facts.guest_limit }} messages per day (text only)
+- Free member account: {% if facts.member_limit %}{{ facts.member_limit }} messages per day{% else %}unlimited messages{% endif %}, saved chat history, image upload up to {{ facts.max_image_mb }} MB, "fast" and "in-depth" answer modes
+- Maximum message length: {{ facts.max_message_chars }} characters
+- Features: grammar correction with explanations, role-play conversations, vocabulary, exam practice (JLPT, TOEIC, HSK), reading and explaining photos of homework or textbooks, text-to-speech, Thai speech input, a learning-progress page (streak, messages per day, top languages), a community with one post per day and AI moderation
+- Price: free
+- Platform: web app, installable as a Progressive Web App on Android, iOS (Safari, Add to Home Screen) and desktop
+- Contact: {{ contact_email }}
+
+## คำถามที่พบบ่อย (FAQ, Thai)
+
+{% for item in faqs %}### {{ item.q }}
+
+{{ item.a }}
+
+{% endfor %}
+{% for g in guides %}## {{ g.title }}
+
+URL: {{ base }}/guides/{{ g.slug }}/
+
+{{ g.description }}
+
+**สรุปสั้น:** {{ g.summary }}
+
+{% for s in g.sections %}### {{ s.h }}
+
+{% for para in s.p %}{{ para }}
+
+{% endfor %}{% if s.list %}{% for li in s.list %}{% if s.ordered %}{{ forloop.counter }}.{% else %}-{% endif %} {{ li }}
+{% endfor %}
+{% endif %}{% endfor %}{% endfor %}{% endautoescape %}

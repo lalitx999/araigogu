@@ -54,6 +54,17 @@ scripts/dev.sh test      # เทสต์ทั้งหมด
 3. สำรองข้อมูล: `scripts/backup.sh` (ใส่ cron รายวัน เก็บ 14 ไฟล์ล่าสุด)
 4. อีเมลลืมรหัสผ่านใช้ SMTP จาก `EMAIL_*` (ตอน dev พิมพ์ลง console)
 
+## SEO, AI search และ PWA (แอป `web/public/`)
+
+- เนื้อหาที่ให้ AI อ้างอิง (FAQ + คู่มือ) อยู่ที่ `public/content.py` ไฟล์เดียว ใช้สร้างหน้าเว็บ, JSON-LD, `sitemap.xml`, `llms.txt` และ `llms-full.txt`
+  ตัวเลขสินค้า (จำนวนภาษา, โควตา) อ่านจาก settings จริง แก้เนื้อหาแล้วเปลี่ยน `CONTENT_UPDATED` ด้วย
+- หน้า index ได้: `/`, `/about/`, `/faq/`, `/guides/...`, `/accounts/register/` ที่เหลือเป็น `noindex` (กำหนดใน `public/seo.py`)
+- Schema: Organization, WebSite, WebApplication, FAQPage, Article, ItemList, BreadcrumbList
+- `robots.txt` อนุญาต AI crawler (GPTBot, ClaudeBot, PerplexityBot ฯลฯ) อ่านเฉพาะหน้าสาธารณะ
+- ตั้ง `SITE_URL` (prod ตั้งให้อัตโนมัติจาก `DOMAIN`) เพื่อให้ canonical, sitemap, og:image เป็นโดเมนจริง
+- PWA: `/manifest.webmanifest`, `/sw.js` (แคชเฉพาะไฟล์ static + หน้า `/offline/`, ไม่แคชหน้าที่มีข้อมูลส่วนตัว), ปุ่มติดตั้งแอป, share target
+- รูปไอคอน/OG สร้างจาก `img/Ryupro.png` (pixel art) เป็น webp/png ขนาดเล็กไว้ใน `static/img/` และ `static/img/icons/`
+
 ## การป้องกันค่าใช้จ่าย/การโจมตี
 
 | ที่ | จำกัด |
