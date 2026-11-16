@@ -10,4 +10,5 @@ urlpatterns = [
     path("clear", views.clear, name="clear"),
     path("<int:pk>/", views.index, name="detail"),
     path("<int:pk>/send/", views.send, name="send"),
+    path("<int:pk>/delete/", views.delete_session, name="delete"),
 ]

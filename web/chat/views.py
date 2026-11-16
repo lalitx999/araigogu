@@ -1,3 +1,4 @@
+import base64
 import json
 
 from django.conf import settings
@@ -15,6 +16,7 @@ from .languages import DIFFICULTIES, JP_LEVELS, LANGUAGE_NAMES, LANGUAGES
 from .models import ChatSession, Message
 
 MAX_MESSAGE_LEN = 2000
+MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10MB
 
 
 @login_required
@@ -25,8 +27,10 @@ def index(request, pk=None):
     except (TypeError, ValueError):
         pk = None
     current = get_object_or_404(request.user.chat_sessions, pk=pk) if pk else None
+    all_sessions = list(request.user.chat_sessions.all()[:50])
+
     return render(request, "chat/index.html", {
-        "sessions": request.user.chat_sessions.all()[:30],
+        "sessions": all_sessions,
         "current": current,
         "chat_messages": current.messages.all() if current else [],
         "languages": LANGUAGES,
@@ -66,12 +70,39 @@ def create(request):
         user=request.user, title=title, language=language, difficulty=difficulty,
         learning_goal=request.POST.get("learning_goal", "").strip()[:1000],
     )
+    if request.headers.get("x-requested-with") == "XMLHttpRequest" or "application/json" in request.headers.get("accept", ""):
+        return JsonResponse({
+            "success": True,
+            "id": session.pk,
+            "url": reverse("chat:detail", kwargs={"pk": session.pk}),
+            "title": session.title,
+        })
     return redirect("chat:detail", pk=session.pk)
 
 
-def _deliver(user, session, text):
+def _deliver(user, session, text, model_provider="gemini", model_name="gemini-2.5-flash",
+             image_file=None, image_data_url=""):
     """Send one user message through the AI and persist the exchange. Returns (payload, http_status)."""
-    if not text or len(text) > MAX_MESSAGE_LEN:
+    text = (text or "").strip()
+    images = []
+
+    if image_file:
+        try:
+            if image_file.size > MAX_IMAGE_SIZE:
+                return {"error": "file_too_large"}, 400
+            image_bytes = image_file.read()
+            image_file.seek(0)
+            mime = getattr(image_file, "content_type", "image/jpeg")
+            b64 = base64.b64encode(image_bytes).decode("ascii")
+            images.append(f"data:{mime};base64,{b64}")
+        except Exception:
+            return {"error": "invalid_image"}, 400
+    elif image_data_url:
+        images.append(image_data_url)
+
+    if not text and not images:
+        return {"error": "invalid_message"}, 400
+    if len(text) > MAX_MESSAGE_LEN:
         return {"error": "invalid_message"}, 400
 
     limit = settings.AI_DAILY_CHAT_LIMIT
@@ -85,27 +116,78 @@ def _deliver(user, session, text):
         {"role": m.role, "content": m.content}
         for m in session.messages.order_by("-created_at", "-id")[: settings.AI_CHAT_HISTORY_LIMIT]
     ][::-1]
-    result = ai.chat(text, session.language, session.difficulty, history,
-                     language_name=session.language_name, learning_goal=session.learning_goal)
+
+    result = ai.chat(
+        text, session.language, session.difficulty, history,
+        language_name=session.language_name, learning_goal=session.learning_goal,
+        model_provider=model_provider, model_name=model_name, images=images,
+    )
     if result.get("degraded"):
         # Persist nothing: the client can retry, so saving would create duplicates.
         return {"error": result["reply"], "degraded": True}, 503
 
-    Message.objects.create(session=session, role="user", content=text, topic=result.get("topic", ""))
-    Message.objects.create(session=session, role="assistant", content=result["reply"])
-    session.save(update_fields=["updated_at"])
-    return {"reply": result["reply"], "degraded": False}, 200
+    user_msg = Message.objects.create(
+        session=session,
+        role="user",
+        content=text,
+        topic=result.get("topic", ""),
+        model_provider=model_provider,
+        model_name=model_name,
+        image=image_file if image_file else None,
+    )
+    assistant_msg = Message.objects.create(
+        session=session,
+        role="assistant",
+        content=result["reply"],
+        model_provider=model_provider,
+        model_name=model_name,
+    )
+    # Automatically update session title if it's the first message and still default
+    if session.messages.count() <= 2 and text:
+        first_line = text.split("\n")[0].strip()[:35]
+        session.title = first_line
+    session.save(update_fields=["updated_at", "title"])
+
+    return {
+        "reply": result["reply"],
+        "user_message": user_msg.content,
+        "image_url": user_msg.image_url,
+        "model_used": model_name,
+        "provider_used": model_provider,
+        "degraded": False,
+    }, 200
 
 
 @login_required
 @require_POST
 def send(request, pk):
     session = get_object_or_404(request.user.chat_sessions, pk=pk)
-    try:
-        text = str(json.loads(request.body).get("message", "")).strip()
-    except (ValueError, AttributeError):
-        return JsonResponse({"error": "bad_request"}, status=400)
-    payload, status = _deliver(request.user, session, text)
+    image_file = request.FILES.get("image")
+    image_data_url = ""
+    model_provider = "gemini"
+    model_name = "gemini-2.5-flash"
+
+    if request.content_type and "application/json" in request.content_type:
+        try:
+            body = json.loads(request.body)
+            text = str(body.get("message", "")).strip()
+            model_provider = str(body.get("model_provider", "gemini")).strip()
+            model_name = str(body.get("model_name", "gemini-2.5-flash")).strip()
+            image_data_url = str(body.get("image", "")).strip()
+        except (ValueError, AttributeError):
+            return JsonResponse({"error": "bad_request"}, status=400)
+    else:
+        text = str(request.POST.get("message", "")).strip()
+        model_provider = str(request.POST.get("model_provider", "gemini")).strip()
+        model_name = str(request.POST.get("model_name", "gemini-2.5-flash")).strip()
+
+    payload, status = _deliver(
+        request.user, session, text,
+        model_provider=model_provider,
+        model_name=model_name,
+        image_file=image_file,
+        image_data_url=image_data_url,
+    )
     return JsonResponse(payload, status=status)
 
 
@@ -119,11 +201,20 @@ def action(request):
         session = request.user.chat_sessions.get(pk=int(request.POST.get("session_id", "")))
     except (ValueError, ChatSession.DoesNotExist):
         return JsonResponse({"success": False, "error": "session_not_found"})
-    payload, _ = _deliver(request.user, session, request.POST.get("message", "").strip())
+    payload, _ = _deliver(
+        request.user, session, request.POST.get("message", "").strip(),
+        model_provider=request.POST.get("model_provider", "gemini"),
+        model_name=request.POST.get("model_name", "gemini-2.5-flash"),
+        image_file=request.FILES.get("image"),
+    )
     if "reply" in payload:
-        return JsonResponse({"success": True, "ai_response": payload["reply"]})
+        res = {"success": True, "ai_response": payload["reply"]}
+        if payload.get("image_url"):
+            res["image_url"] = payload["image_url"]
+        return JsonResponse(res)
     msg = {"daily_limit": f"วันนี้ใช้ครบโควตาแล้ว ({payload.get('limit')} ข้อความ) ลองใหม่พรุ่งนี้นะครับ",
-           "invalid_message": "ข้อความว่างหรือยาวเกินไป"}.get(payload["error"], payload["error"])
+           "invalid_message": "ข้อความว่างหรือยาวเกินไป",
+           "file_too_large": "ไฟล์รูปภาพมีขนาดใหญ่เกินไป (ไม่เกิน 10MB)"}.get(payload["error"], payload["error"])
     return JsonResponse({"success": False, "error": msg})
 
 
@@ -136,4 +227,12 @@ def clear(request):
         return JsonResponse({"success": False}, status=400)
     session = get_object_or_404(request.user.chat_sessions, pk=session_id)
     session.messages.all().delete()
+    return JsonResponse({"success": True})
+
+
+@login_required
+@require_POST
+def delete_session(request, pk):
+    session = get_object_or_404(request.user.chat_sessions, pk=pk)
+    session.delete()
     return JsonResponse({"success": True})

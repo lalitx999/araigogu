@@ -1,521 +1,308 @@
-{% load static humanize %}<!DOCTYPE html>
-<html lang="th
+{% load static humanize %}
+<!DOCTYPE html>
+<html lang="th">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <title>แชทกับพี่ริว - ARAI GO GU V.2</title>
+    <title>{{ current.title|default:'แชทเรียนภาษากับ AI' }} - ARAI GO GU</title>
     <link rel="icon" href="{% static 'img/ryupro.ico' %}">
 
-    <!-- Bootstrap 5 + Icons + fonts: all served locally (no CDN) -->
-    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    <!-- Bootstrap 5 + Icons + Fonts (Local Static, No CDN) -->
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
-    <link rel="stylesheet" href="{% static 'css/pages/chat.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pages/gemini_chat.css' %}">
 </head>
 
 <body>
-    <!-- Theme Toggle -->
-    <button class="theme-toggle" onclick="toggleTheme()">
-        <i class="bi bi-moon"></i>
-    </button>
+    <div class="gem-shell" id="gemShell">
+        <!-- Backdrop for mobile drawer -->
+        <div class="gem-backdrop" id="gemBackdrop"></div>
 
-    <!-- Navbar -->
-    <nav class="chat-navbar">
-        <div class="chat-navbar-left">
-            <a href="{% url 'dashboard' %}" class="back-btn">
-                <i class="bi bi-chevron-left"></i>
+        <!-- Left Sidebar (Gemini Style) -->
+        <aside class="gem-side" id="gemSide" aria-label="ประวัติการสนทนา">
+            <a href="{% url 'dashboard' %}" class="gem-brand">
+                <span class="gem-spark"><i class="bi bi-translate"></i></span>
+                <span>ARAI GO <span style="color: var(--gem-blue);">GU</span></span>
             </a>
-            <div class="chat-info">
-                <h1 class="chat-title">
-                    {{ current.title|default:'แชทกับ AI Tutor' }}
-                </h1>
-                <div class="chat-status">
-                    <div class="status-dot"></div>
-                    <span>
-                        AI Tutor กำลังออนไลน์ •
-                        <strong>
-                            {{ current_language|upper }}
-                        </strong>
-                        (
-                        {{ current_difficulty }})
-                    </span>
-                </div>
+
+            <!-- New Chat Button -->
+            <form action="{% url 'chat:create' %}" method="POST" class="w-100">
+                {% csrf_token %}
+                <input type="hidden" name="language" value="{{ current_language|default:'ja' }}">
+                <input type="hidden" name="difficulty" value="{{ current_difficulty|default:'beginner' }}">
+                <button type="submit" class="gem-new-chat-btn">
+                    <i class="bi bi-plus-lg fs-5"></i>
+                    <span>แชทใหม่</span>
+                </button>
+            </form>
+
+            <!-- Search Chats -->
+            <div class="gem-search-wrap">
+                <i class="bi bi-search"></i>
+                <input type="text" id="searchChatInput" class="gem-search-input" placeholder="ค้นหาประวัติแชท...">
             </div>
-        </div>
 
-        <div class="chat-actions">
-            <button class="chat-action-btn" onclick="showSessionInfo()">
-                <i class="bi bi-info-circle"></i>
-                <span>รายละเอียด</span>
-            </button>
-            <button class="chat-action-btn" onclick="clearChat()">
-                <i class="bi bi-trash"></i>
-                <span>ล้างแชท</span>
-            </button>
-            <button class="chat-action-btn" onclick="exportChat()">
-                <i class="bi bi-download"></i>
-                <span>บันทึก</span>
-            </button>
-        </div>
-    </nav>
-
-    <!-- Chat Container -->
-    <div class="chat-container">
-        <div class="chat-messages" id="chatMessages">
-            {% if not chat_messages %}
-            <!-- Welcome Message -->
-            <div class="welcome-message">
-                <div class="welcome-icon">
-                    <i class="bi bi-robot"></i>
-                </div>
-                <h3 class="mb-3">สวัสดี! ฉันคือ AI Tutor ของคุณ</h3>
-                <p class="text-muted mb-4">เริ่มสนทนาเพื่อเรียนรู้ภาษา
-                    {{ current_language|upper }}
-                    ในระดับ
-                    {{ current_difficulty }} กันเลย
-                </p>
-                <div class="d-flex flex-wrap justify-content-center gap-2">
-                    <button class="chat-action-btn" onclick="insertPrompt('แนะนำตัวหน่อย')">
-                        <i class="bi bi-person"></i> แนะนำตัว
-                    </button>
-                    <button class="chat-action-btn" onclick="insertPrompt('ช่วยสอนคำศัพท์พื้นฐานหน่อย')">
-                        <i class="bi bi-book"></i> คำศัพท์
-                    </button>
-                    <button class="chat-action-btn" onclick="insertPrompt('ฝึกสนทนาพื้นฐานกับฉันหน่อย')">
-                        <i class="bi bi-chat"></i> ฝึกสนทนา
-                    </button>
-                </div>
-            </div>
-            {% else %}
-            <!-- Chat History -->
-            {% for msg in chat_messages %}
-            <div class="message {% if msg.role == 'user' %}user{% else %}ai{% endif %}">
-                {% if msg.role == 'assistant' %}
-                <div class="avatar">
-                    <i class="bi bi-robot"></i>
-                </div>
-                {% else %}
-                <div class="avatar">
-                    <i class="bi bi-person"></i>
-                </div>
-                {% endif %}
-
-                <div class="message-content">
-                    <div class="message-bubble">
-                        {% if msg.role == 'assistant' %}
-                        <button class="copy-btn" onclick="copyToClipboard(this)">
-                            <i class="bi bi-clipboard"></i>
+            <!-- Thread List -->
+            <div class="gem-side-label">ประวัติการเรียนรู้</div>
+            <div class="gem-thread-list" id="threadList">
+                {% for s in sessions %}
+                <a href="{% url 'chat:detail' s.pk %}"
+                    class="gem-thread-item {% if current and current.pk == s.pk %}active{% endif %}"
+                    data-session-id="{{ s.pk }}" title="{{ s.title }}">
+                    <i class="bi bi-chat-left-text text-muted"></i>
+                    <span class="gem-thread-title">{{ s.title }}</span>
+                    <div class="gem-thread-actions">
+                        <button type="button" class="gem-icon-btn" title="ลบแชทนี้"
+                            onclick="deleteChatSession({{ s.pk }}, event)">
+                            <i class="bi bi-trash"></i>
                         </button>
-                        {% endif %}
-                        {{ msg.content|linebreaksbr }}
+                    </div>
+                </a>
+                {% empty %}
+                <p class="text-muted small text-center mt-3 px-2">ยังไม่มีประวัติแชท</p>
+                {% endfor %}
+            </div>
 
-                        {% if msg.role == 'assistant' %}
-                        <div class="ai-actions">
-                            <button class="ai-action-btn"
-                                onclick="insertPrompt('อธิบายเพิ่มเติมเกี่ยวกับ: {{ msg.content|truncatechars:50|escapejs }}')">
-                                <i class="bi bi-info-circle"></i> อธิบายเพิ่ม
+            <!-- Sidebar Footer -->
+            <div class="gem-side-foot">
+                <a href="{% url 'dashboard' %}" class="gem-foot-link">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>แดชบอร์ด</span>
+                </a>
+                <a href="{% url 'community:feed' %}" class="gem-foot-link">
+                    <i class="bi bi-people"></i>
+                    <span>ชุมชนการเรียนรู้</span>
+                </a>
+                <a href="{% url 'accounts:edit_profile' %}" class="gem-foot-link">
+                    <i class="bi bi-person-gear"></i>
+                    <span>{{ user.full_name|default:user.username }}</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Workspace Area -->
+        <main class="gem-main">
+            <!-- Topbar -->
+            <header class="gem-topbar {% if chat_messages %}has-border{% endif %}">
+                <div class="d-flex align-items-center gap-2">
+                    <!-- Toggle sidebar buttons -->
+                    <button type="button" class="gem-circle-btn d-none d-lg-inline-flex" id="sideToggleBtn"
+                        title="ซ่อน/แสดงเมนูข้าง">
+                        <i class="bi bi-list fs-5"></i>
+                    </button>
+                    <button type="button" class="gem-circle-btn d-lg-none" id="mobileSideBtn" title="เปิดประวัติแชท">
+                        <i class="bi bi-list fs-5"></i>
+                    </button>
+
+                    <!-- Language Badge / Session Title -->
+                    <div class="gem-model-badge">
+                        <span class="dot"></span>
+                        <span>{{ current_language_name }} ({{ current_difficulty|upper }})</span>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <!-- Theme Toggle -->
+                    <button type="button" class="gem-circle-btn" id="themeToggleBtn" title="สลับโหมดมืด/สว่าง"
+                        onclick="toggleDarkMode()">
+                        <i class="bi bi-moon" id="themeIcon"></i>
+                    </button>
+                    <!-- Back to Dashboard -->
+                    <a href="{% url 'dashboard' %}" class="gem-circle-btn text-decoration-none" title="กลับแดชบอร์ด">
+                        <i class="bi bi-house"></i>
+                    </a>
+                </div>
+            </header>
+
+            <!-- Welcome Stage (When no messages yet) -->
+            <section class="gem-welcome-stage welcome-message" id="welcomeStage" {% if chat_messages
+                %}style="display: none;" {% endif %}>
+                <div class="gem-welcome-inner">
+                    <div class="gem-spark gem-spark-lg">
+                        <i class="bi bi-stars"></i>
+                    </div>
+                    <h1 class="gem-greeting">วันนี้ให้พี่ริวช่วยเรียนภาษาเรื่องอะไรดีครับ</h1>
+                    <p class="gem-subgreeting">
+                        ถามไวยากรณ์, ฝึกจำลองบทสนทนา, หรือถ่ายรูปโจทย์/หน้าหนังสือส่งมาให้ช่วยตรวจได้เลย 🐾
+                    </p>
+
+                    <!-- Suggestion Chips for Students -->
+                    <div class="gem-suggest-chips">
+                        <button type="button" class="gem-chip-btn"
+                            onclick="askSuggestion('ช่วยแปลและสรุปคำศัพท์จากรูปนี้ให้หน่อยครับ')">
+                            <span class="icon"><i class="bi bi-image"></i></span>
+                            <strong>ตรวจบทเรียนจากรูปภาพ</strong>
+                            <span>ถ่ายภาพการบ้านหรือหนังสือส่งมา</span>
+                        </button>
+                        <button type="button" class="gem-chip-btn"
+                            onclick="askSuggestion('สอน 5 ประโยคภาษาที่ใช้บ่อยในชีวิตประจำวัน พร้อมคำอ่านและคำแปลครับ')">
+                            <span class="icon"><i class="bi bi-chat-quote"></i></span>
+                            <strong>5 ประโยคใช้บ่อย</strong>
+                            <span>พร้อมคำอ่านและตัวอย่างวิธีใช้</span>
+                        </button>
+                        <button type="button" class="gem-chip-btn"
+                            onclick="askSuggestion('ช่วยตรวจแกรมม่าและเกลาประโยคนี้ให้เป็นธรรมชาติหน่อยครับ: ')">
+                            <span class="icon"><i class="bi bi-pencil-square"></i></span>
+                            <strong>ตรวจแกรมม่า / ไวยากรณ์</strong>
+                            <span>ตรวจแก้ไขและอธิบายเหตุผล</span>
+                        </button>
+                        <button type="button" class="gem-chip-btn"
+                            onclick="askSuggestion('จำลองสถานการณ์สนทนาสั่งอาหารในร้านอาหารญี่ปุ่นให้หน่อยครับ')">
+                            <span class="icon"><i class="bi bi-cup-hot"></i></span>
+                            <strong>จำลองบทสนทนา (Roleplay)</strong>
+                            <span>ฝึกพูดโต้ตอบสถานการณ์จริง</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Scrollable Chat Stream (When there are messages) -->
+            <section class="gem-scroll" id="chatScroll">
+                <div class="gem-col" id="chatContainer" {% if not chat_messages %}style="display: none;" {% endif %}>
+                    {% for msg in chat_messages %}
+                    {% if msg.role == 'user' %}
+                    <div class="gem-row user">
+                        <div class="gem-user-bubble">
+                            {% if msg.has_image %}
+                            <img src="{{ msg.image_url }}" class="gem-user-image" alt="ภาพแนบ" />
+                            {% endif %}
+                            {% if msg.content %}
+                            <div>{{ msg.content|linebreaksbr }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="gem-row">
+                        <span class="gem-spark"><i class="bi bi-stars"></i></span>
+                        <div class="gem-bot-body">
+                            <div class="gem-rendered-content" data-raw="{{ msg.content|urlencode }}">
+                                {{ msg.content|linebreaksbr }}
+                            </div>
+                            <div class="gem-actions-row">
+                                <button type="button" class="gem-act-btn copy-btn"
+                                    data-text="{{ msg.content|urlencode }}" title="คัดลอกข้อความ">
+                                    <i class="bi bi-clipboard"></i> <span>คัดลอก</span>
+                                </button>
+                                <button type="button" class="gem-act-btn tts-btn"
+                                    data-text="{{ msg.content|urlencode }}" title="อ่านออกเสียง">
+                                    <i class="bi bi-volume-up"></i> <span>ฟังเสียง</span>
+                                </button>
+                                <button type="button" class="gem-act-btn simplify-btn" title="อธิบายให้เข้าใจง่ายขึ้น">
+                                    <i class="bi bi-magic"></i> <span>อธิบายง่ายขึ้น</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </section>
+
+            <!-- Floating Capsule Composer at Bottom -->
+            <div class="gem-bottom-wrap">
+                <div class="gem-composer-box">
+                    <!-- Image Attachment Preview Thumbnail Bar -->
+                    <div class="gem-attach-preview" id="attachPreview" style="display: none;">
+                        <img src="" id="attachThumb" class="gem-attach-thumb" alt="พรีวิวรูป">
+                        <div class="gem-attach-info">
+                            <span class="name" id="attachName">ภาพที่เลือก</span>
+                            <span class="size" id="attachSize">0 KB</span>
+                        </div>
+                        <button type="button" class="gem-attach-dismiss" id="attachDismiss" title="ยกเลิกรูปภาพ">
+                            <i class="bi bi-x-circle-fill"></i>
+                        </button>
+                    </div>
+
+                    <!-- Capsule Composer Form -->
+                    <form class="gem-pill-composer" id="composerForm">
+                        <div class="gem-pill-row">
+                            <!-- Hidden File Input for Image Upload -->
+                            <input type="file" id="fileInput" accept="image/*" class="d-none">
+
+                            <!-- Attachment Button -->
+                            <button type="button" class="gem-tool-btn" id="attachBtn"
+                                title="แนบรูปภาพการบ้าน / แบบฝึกหัด (Ctrl+V เพื่อวางรูปได้)">
+                                <i class="bi bi-plus-circle fs-5"></i>
                             </button>
-                            <button class="ai-action-btn"
-                                onclick="insertPrompt('ยกตัวอย่างการใช้: {{ msg.content|truncatechars:50|escapejs }}')">
-                                <i class="bi bi-lightbulb"></i> ตัวอย่าง
+
+                            <!-- Auto-growing Textarea -->
+                            <textarea id="messageInput" class="gem-pill-textarea" rows="1" maxlength="2000"
+                                placeholder="พิมพ์ข้อความ หรือถ่ายรูปการบ้านส่งมาให้ช่วยวิเคราะห์..."></textarea>
+
+                            <!-- Microphone Button (Speech to Text) -->
+                            <button type="button" class="gem-tool-btn" id="micBtn" title="กดเพื่อพูดด้วยเสียงภาษาไทย">
+                                <i class="bi bi-mic"></i>
                             </button>
-                            <button class="ai-action-btn"
-                                onclick="insertPrompt('ช่วยแปลข้อความนี้: {{ msg.content|truncatechars:50|escapejs }}')">
-                                <i class="bi bi-translate"></i> แปล
+
+                            <!-- Send Button -->
+                            <button type="submit" class="gem-send-btn" id="sendBtn" title="ส่งข้อความ" disabled>
+                                <i class="bi bi-arrow-up-short fs-4"></i>
                             </button>
                         </div>
-                        {% endif %}
-                    </div>
-                    <div class="message-time">
-                        {{ msg.created_at|date:"H:i" }}
-                    </div>
+
+                        <!-- Footer: Model Selector -->
+                        <div class="gem-composer-footer">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-cpu text-muted"></i>
+                                <select id="modelSelect" class="gem-model-select" title="เลือกโมเดล AI ที่ต้องการใช้">
+                                    <option value="gemini:gemini-2.5-flash" selected>✨ Gemini 2.5 Flash (ฉลาด &amp;
+                                        ตรวจรูปภาพ)</option>
+                                    <option value="groq:llama-3.3-70b-versatile">⚡ Groq (เร็วทันใจ ฝึกสนทนา)</option>
+                                    <option value="deepseek:deepseek-chat">🧠 DeepSeek (คิดวิเคราะห์ไวยากรณ์ลึก)
+                                    </option>
+                                    <option value="openai:gpt-4o-mini">🤖 OpenAI (gpt-4o-mini)</option>
+                                </select>
+                            </div>
+                            <span class="d-none d-sm-inline">กด Enter ส่ง · Shift+Enter ขึ้นบรรทัดใหม่</span>
+                        </div>
+                    </form>
                 </div>
             </div>
-            {% endfor %}
-            {% endif %}
-
-            <!-- Typing Indicator -->
-            <div id="typingIndicator" class="typing-indicator ai" style="display: none;">
-                <div class="typing-dots">
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                </div>
-                <span class="ms-2">AI Tutor กำลังพิมพ์...</span>
-            </div>
-        </div>
+        </main>
     </div>
 
-    <!-- Input Area -->
-    <div class="chat-input-area">
-        <div class="input-container">
-            <textarea id="userInput"
-                placeholder="พิมพ์ข้อความถึง AI Tutor ของคุณที่นี่... (กด Enter เพื่อส่ง, Shift+Enter สำหรับบรรทัดใหม่)"
-                rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-
-            <div class="input-actions">
-                <button class="input-action-btn" onclick="insertPrompt('ช่วยตรวจสอบไวยากรณ์ให้ฉันหน่อย')"
-                    title="ตรวจสอบไวยากรณ์">
-                    <i class="bi bi-spellcheck"></i>
-                </button>
-                <button class="input-action-btn" onclick="showLanguageTools()" title="เครื่องมือภาษา">
-                    <i class="bi bi-translate"></i>
-                </button>
-                <button class="input-action-btn" onclick="clearInput()" title="ล้างข้อความ">
-                    <i class="bi bi-x-circle"></i>
-                </button>
-                <button id="sendBtn" class="send-btn" onclick="sendMessage()" title="ส่งข้อความ">
-                    <i class="bi bi-send"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    {{ current.title|default:"ไม่ระบุ"|json_script:"session-title-data" }}
-    <script src="{% static 'vendor/sweetalert2/sweetalert2.all.min.js' %}"></script>
+    <!-- Scripts -->
     <script>
-        // DOM Elements
-        const chatMessages = document.getElementById('chatMessages');
-        const userInput = document.getElementById('userInput');
-        const typingIndicator = document.getElementById('typingIndicator');
-        const sendBtn = document.getElementById('sendBtn');
-        const baseUrl = '';  // same origin, absolute paths below
-        const sessionId = '{{ current.id|default:'' }}';
-        const sessionTitle = JSON.parse(document.getElementById('session-title-data').textContent);
-        const currentLanguage = '{{ current_language|escapejs }}';
-        const currentDifficulty = '{{ current_difficulty|escapejs }}';
-        const csrfToken = '{{ csrf_token }}';
+        const sessionId = '{{ current.pk }}';
+        window.CURRENT_SESSION_ID = {{ current.pk |default: 'null' }};
+        window.CURRENT_LANGUAGE = "{{ current_language|default:'ja' }}";
 
-        // HTML-escape text before it goes into innerHTML / onclick attributes
-        function escapeHtml(s) {
-            return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-        }
-        function jsArg(s) { // safe inside onclick="insertPrompt('...')"
-            return escapeHtml(String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/[\r\n]+/g, ' '));
+        function escapeHtml(text) {
+            const div = document.createElement("div");
+            div.textContent = text || "";
+            return div.innerHTML;
         }
 
-        // Theme Toggle
-        function toggleTheme() {
-            const html = document.documentElement;
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            const themeToggle = document.querySelector('.theme-toggle i');
-
-            html.setAttribute('data-theme', newTheme);
-            themeToggle.className = newTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon';
-
-            localStorage.setItem('theme', newTheme);
-        }
-
-        // Load saved theme
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        document.querySelector('.theme-toggle i').className = savedTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon';
-
-        // Scroll to bottom
-        function scrollToBottom() {
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        // Auto-resize textarea
-        function autoResize(textarea) {
-            textarea.style.height = 'auto';
-            textarea.style.height = (textarea.scrollHeight) + 'px';
-        }
-
-        // Handle keyboard events
-        function handleKey(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        }
-
-        // Send message
-        async function sendMessage() {
-            const message = userInput.value.trim();
-            if (!message || sendBtn.disabled) return;
-
-            // Add user message to UI
-            addMessage(message, 'user');
-            userInput.value = '';
-            userInput.style.height = 'auto';
-
-            // Show typing indicator
-            showTypingIndicator();
-            sendBtn.disabled = true;
-            scrollToBottom();
-
-            try {
-                const formData = new FormData();
-                formData.append('action', 'send_message');
-                formData.append('message', message);
-                formData.append('session_id', sessionId);
-                formData.append('language', currentLanguage);
-                formData.append('difficulty', currentDifficulty);
-                formData.append('csrfmiddlewaretoken', csrfToken);
-
-                const response = await fetch(`${baseUrl}/chat/action`, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-                hideTypingIndicator();
-                sendBtn.disabled = false;
-
-                if (data.success) {
-                    addMessage(data.ai_response, 'ai');
-                } else {
-                    showError(data.error || 'เกิดข้อผิดพลาดในการส่งข้อความ');
-                }
-            } catch (err) {
-                console.error(err);
-                hideTypingIndicator();
-                sendBtn.disabled = false;
-                showError('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
-            }
-            scrollToBottom();
-        }
-
-        // Add message to UI
-        function addMessage(text, sender) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}`;
-
-            const time = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
-
-            if (sender === 'ai') {
-                messageDiv.innerHTML = `
-                    <div class="avatar">
-                        <i class="bi bi-robot"></i>
-                    </div>
-                    <div class="message-content">
-                        <div class="message-bubble">
-                            <button class="copy-btn" onclick="copyToClipboard(this)">
-                                <i class="bi bi-clipboard"></i>
-                            </button>
-                            ${escapeHtml(text).replace(/\n/g, '<br>')}
-                            <div class="ai-actions">
-                                <button class="ai-action-btn" onclick="insertPrompt('อธิบายเพิ่มเติมเกี่ยวกับ: ${jsArg(text.substring(0, 50))}...')">
-                                    <i class="bi bi-info-circle"></i> อธิบายเพิ่ม
-                                </button>
-                                <button class="ai-action-btn" onclick="insertPrompt('ยกตัวอย่างการใช้: ${jsArg(text.substring(0, 50))}...')">
-                                    <i class="bi bi-lightbulb"></i> ตัวอย่าง
-                                </button>
-                                <button class="ai-action-btn" onclick="insertPrompt('ช่วยแปลข้อความนี้: ${jsArg(text.substring(0, 50))}...')">
-                                    <i class="bi bi-translate"></i> แปล
-                                </button>
-                            </div>
-                        </div>
-                        <div class="message-time">${time}</div>
-                    </div>
-                `;
+        function toggleDarkMode() {
+            const body = document.body;
+            const icon = document.getElementById("themeIcon");
+            const isDark = body.getAttribute("data-theme") === "dark";
+            if (isDark) {
+                body.removeAttribute("data-theme");
+                if (icon) icon.className = "bi bi-moon";
+                localStorage.setItem("theme", "light");
             } else {
-                messageDiv.innerHTML = `
-                    <div class="avatar">
-                        <i class="bi bi-person"></i>
-                    </div>
-                    <div class="message-content">
-                        <div class="message-bubble">
-                            ${escapeHtml(text).replace(/\n/g, '<br>')}
-                        </div>
-                        <div class="message-time">${time}</div>
-                    </div>
-                `;
-            }
-
-            chatMessages.insertBefore(messageDiv, typingIndicator);
-            scrollToBottom();
-        }
-
-        // Typing indicator
-        function showTypingIndicator() {
-            typingIndicator.style.display = 'block';
-            scrollToBottom();
-        }
-
-        function hideTypingIndicator() {
-            typingIndicator.style.display = 'none';
-        }
-
-        // Insert prompt
-        function insertPrompt(prompt) {
-            userInput.value = prompt;
-            userInput.focus();
-            autoResize(userInput);
-        }
-
-        // Clear input
-        function clearInput() {
-            userInput.value = '';
-            userInput.style.height = 'auto';
-            userInput.focus();
-        }
-
-        // Copy to clipboard
-        async function copyToClipboard(button) {
-            const messageText = button.closest('.message-bubble').innerText;
-
-            try {
-                await navigator.clipboard.writeText(messageText);
-
-                // Show success feedback
-                const originalIcon = button.innerHTML;
-                button.innerHTML = '<i class="bi bi-check"></i>';
-                button.style.color = '#22c55e';
-
-                setTimeout(() => {
-                    button.innerHTML = originalIcon;
-                    button.style.color = '';
-                }, 2000);
-            } catch (err) {
-                showError('ไม่สามารถคัดลอกข้อความได้');
+                body.setAttribute("data-theme", "dark");
+                if (icon) icon.className = "bi bi-sun";
+                localStorage.setItem("theme", "dark");
             }
         }
 
-        // Clear chat
-        function clearChat() {
-            Swal.fire({
-                title: 'ยืนยันการล้างแชท?',
-                text: "ประวัติการสนทนาทั้งหมดจะถูกล้างออกจากเซสชันนี้",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#000000',
-                cancelButtonColor: '#666666',
-                confirmButtonText: 'ล้างแชท',
-                cancelButtonText: 'ยกเลิก',
-                reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Clear UI
-                    chatMessages.innerHTML = `
-                        <div class="welcome-message">
-                            <div class="welcome-icon">
-                                <i class="bi bi-robot"></i>
-                            </div>
-                            <h3 class="mb-3">เริ่มสนทนาใหม่</h3>
-                            <p class="text-muted mb-4">แชทถูกล้างแล้ว สามารถเริ่มสนทนาใหม่ได้เลย</p>
-                        </div>
-                    `;
-
-                    // Send clear request to server
-                    fetch(`${baseUrl}/chat/clear`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': csrfToken,
-                        },
-                        body: JSON.stringify({
-                            session_id: sessionId
-                        })
-                    });
-
-                    showSuccess('ล้างแชทเรียบร้อยแล้ว');
-                }
-            });
-        }
-
-        // Show session info
-        function showSessionInfo() {
-            Swal.fire({
-                title: 'รายละเอียดเซสชัน',
-                html: `
-                    <div class="text-start">
-                        <p><strong>หัวข้อ:</strong> ${escapeHtml(sessionTitle)}</p>
-                        <p><strong>ภาษา:</strong> ${currentLanguage.toUpperCase()} (${currentDifficulty})</p>
-                        <p><strong>สร้างเมื่อ:</strong> {{ current.created_at|date:"d/m/Y H:i" }}</p>
-                        <p><strong>จำนวนข้อความ:</strong> {{ chat_messages|length }}</p>
-                        <hr>
-                        <p class="text-muted small">เซสชัน ID: ${sessionId}</p>
-                    </div>
-                `,
-                confirmButtonColor: '#000000',
-                confirmButtonText: 'ปิด'
-            });
-        }
-
-        // Export chat
-        function exportChat() {
-            const chatText = Array.from(chatMessages.querySelectorAll('.message'))
-                .map(msg => {
-                    const sender = msg.classList.contains('user') ? 'คุณ' : 'AI Tutor';
-                    const text = msg.querySelector('.message-bubble').innerText;
-                    return `[${sender}]: ${text}`;
-                })
-                .join('\n\n');
-
-            const blob = new Blob([chatText], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `chat-${currentLanguage}-${new Date().toISOString().split('T')[0]}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-
-            showSuccess('บันทึกแชทเรียบร้อยแล้ว');
-        }
-
-        // Show language tools
-        function showLanguageTools() {
-            Swal.fire({
-                title: 'เครื่องมือภาษา',
-                html: `
-                    <div class="text-center">
-                        <button class="btn btn-dark w-100 mb-2" onclick="insertPrompt('ช่วยแนะนำคำศัพท์ใหม่ในระดับ${currentDifficulty}')">
-                            <i class="bi bi-book me-2"></i> คำศัพท์ใหม่
-                        </button>
-                        <button class="btn btn-dark w-100 mb-2" onclick="insertPrompt('ช่วยตรวจสอบไวยากรณ์ประโยคนี้ให้ฉันหน่อย')">
-                            <i class="bi bi-spellcheck me-2"></i> ตรวจสอบไวยากรณ์
-                        </button>
-                        <button class="btn btn-dark w-100 mb-2" onclick="insertPrompt('ช่วยสร้างบทสนทนาสั้นในสถานการณ์:')">
-                            <i class="bi bi-chat me-2"></i> สร้างบทสนทนา
-                        </button>
-                        <button class="btn btn-dark w-100" onclick="insertPrompt('ช่วยแปลประโยคนี้เป็น${currentLanguage}:')">
-                            <i class="bi bi-translate me-2"></i> แปลภาษา
-                        </button>
-                    </div>
-                `,
-                showConfirmButton: false,
-                showCloseButton: true
-            });
-        }
-
-        // Show error
-        function showError(message) {
-            Swal.fire({
-                icon: 'error',
-                title: 'ข้อผิดพลาด',
-                text: message,
-                confirmButtonColor: '#000000'
-            });
-        }
-
-        // Show success
-        function showSuccess(message) {
-            Swal.fire({
-                icon: 'success',
-                title: 'สำเร็จ',
-                text: message,
-                confirmButtonColor: '#000000',
-                timer: 2000
-            });
-        }
-
-        // Initialize
-        window.onload = function () {
-            scrollToBottom();
-            userInput.focus();
-        };
-
-        // Auto-scroll when new message added
-        const observer = new MutationObserver(scrollToBottom);
-        observer.observe(chatMessages, { childList: true });
+        // Initialize Theme from localStorage
+        (function () {
+            const saved = localStorage.getItem("theme");
+            if (saved === "dark") {
+                document.body.setAttribute("data-theme", "dark");
+                const icon = document.getElementById("themeIcon");
+                if (icon) icon.className = "bi bi-sun";
+            }
+        })();
     </script>
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'js/gemini_chat.js' %}"></script>
 </body>
 
 </html>

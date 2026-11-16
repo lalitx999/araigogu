@@ -30,8 +30,19 @@ class Message(models.Model):
     role = models.CharField(max_length=10, choices=ROLES)
     content = models.TextField()
     topic = models.CharField(max_length=40, blank=True)
+    image = models.FileField(upload_to="chat_attachments/%Y/%m/", blank=True, null=True)
+    model_provider = models.CharField(max_length=30, blank=True, default="")
+    model_name = models.CharField(max_length=60, blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["created_at", "id"]
         indexes = [models.Index(fields=["role", "created_at"])]
+
+    @property
+    def has_image(self):
+        return bool(self.image)
+
+    @property
+    def image_url(self):
+        return self.image.url if self.image else ""

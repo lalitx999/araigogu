@@ -33,11 +33,22 @@ def _post(path: str, payload: dict, timeout: float) -> dict | None:
 
 
 def chat(message: str, language: str, difficulty: str, history: list[dict],
-         language_name: str = "", learning_goal: str = "") -> dict:
+         language_name: str = "", learning_goal: str = "",
+         model_provider: str = "gemini", model_name: str = "",
+         images: list[str] | None = None) -> dict:
     data = _post(
         "/v1/chat",
-        {"message": message, "language": language, "difficulty": difficulty, "history": history,
-         "language_name": language_name, "learning_goal": learning_goal},
+        {
+            "message": message,
+            "language": language,
+            "difficulty": difficulty,
+            "history": history,
+            "language_name": language_name,
+            "learning_goal": learning_goal,
+            "model_provider": model_provider,
+            "model_name": model_name,
+            "images": images or [],
+        },
         settings.AI_TIMEOUT_CHAT,
     )
     if data is None or not isinstance(data.get("reply"), str):

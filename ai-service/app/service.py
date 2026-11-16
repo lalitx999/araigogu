@@ -25,11 +25,35 @@ async def chat(llm: LLM, req: ChatRequest) -> ChatResponse:
     language = req.language_name or LANGUAGE_NAMES.get(req.language, "ภาษาต่างประเทศ")
     messages = [{"role": "system", "content": chat_system_prompt(language, req.difficulty, req.learning_goal)}]
     messages += [{"role": m.role, "content": m.content} for m in req.history]
-    messages.append({"role": "user", "content": req.message})
-    reply = await llm.complete(messages, temperature=0.7, max_tokens=500)
+
+    has_images = bool(req.images)
+    if has_images:
+        user_content: list[dict] = []
+        prompt_text = req.message.strip() or "ช่วยดูภาพนี้ ถอดความและช่วยอธิบาย/สอนเนื้อหาให้หน่อยครับ"
+        user_content.append({"type": "text", "text": prompt_text})
+        for img in req.images:
+            user_content.append({"type": "image_url", "image_url": {"url": img}})
+        messages.append({"role": "user", "content": user_content})
+    else:
+        messages.append({"role": "user", "content": req.message})
+
+    reply = await llm.complete(
+        messages,
+        provider=req.model_provider,
+        custom_model=req.model_name,
+        has_images=has_images,
+        temperature=0.7,
+        max_tokens=1500,
+    )
+
     if not reply:
         return ChatResponse(reply=CHAT_FALLBACK, topic=topic, degraded=True)
-    return ChatResponse(reply=reply.strip(), topic=topic)
+
+    return ChatResponse(
+        reply=reply.strip(),
+        topic=topic,
+        degraded=False,
+    )
 
 
 async def moderate(llm: LLM, req: ModerateRequest) -> ModerateResponse:

@@ -51,6 +51,24 @@ def test_chat_includes_history_and_detects_topic():
     assert roles == ["system", "user", "assistant", "user"]
 
 
+def test_chat_with_images_and_provider():
+    c, fake = client("วิเคราะห์รูปภาพแล้วครับ")
+    r = c.post("/v1/chat", headers=H, json={
+        "message": "แปลรูปนี้ให้หน่อย",
+        "language": "ja",
+        "model_provider": "gemini",
+        "model_name": "gemini-2.5-flash",
+        "images": ["data:image/jpeg;base64,abc123xyz"],
+    })
+    assert r.status_code == 200
+    assert r.json()["reply"] == "วิเคราะห์รูปภาพแล้วครับ"
+    user_msg = fake.calls[0][0][-1]
+    assert user_msg["role"] == "user"
+    assert isinstance(user_msg["content"], list)
+    assert user_msg["content"][0]["text"] == "แปลรูปนี้ให้หน่อย"
+    assert user_msg["content"][1]["image_url"]["url"] == "data:image/jpeg;base64,abc123xyz"
+
+
 def test_chat_degrades_without_llm():
     c, _ = client(None)
     body = c.post("/v1/chat", headers=H, json={"message": "hi"}).json()
