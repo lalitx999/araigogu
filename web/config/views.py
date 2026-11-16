@@ -1,7 +1,7 @@
 from django.db import connection
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import render
 
 
 def healthz(request):
@@ -12,7 +12,6 @@ def healthz(request):
     return JsonResponse({"status": "ok"})
 
 
-def home(request):
-    if request.user.is_authenticated:  # same as the original: logged-in users go to the dashboard
-        return redirect("dashboard")
+def about(request):
+    """The old marketing landing page; the site itself now opens on the chat."""
     return render(request, "home.html", {"total_users": get_user_model().objects.count()})

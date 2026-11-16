@@ -19,7 +19,7 @@ class AuthTests(TestCase):
 
     def test_register_logs_in_lowercases_email_and_records_consent(self):
         r = self.register()
-        self.assertRedirects(r, reverse("dashboard"), fetch_redirect_response=False)
+        self.assertRedirects(r, reverse("home"), fetch_redirect_response=False)
         u = User.objects.get(email="som@example.com")
         self.assertTrue(ConsentLog.objects.filter(user=u).exists())
         self.assertEqual(self.client.get(reverse("dashboard")).status_code, 200)
@@ -37,10 +37,10 @@ class AuthTests(TestCase):
         self.assertIn("is-invalid", html)
         self.assertIn('name="full_name"', html)
 
-    def test_login_with_email_goes_to_dashboard(self):
+    def test_login_with_email_goes_to_the_chat(self):
         User.objects.create_user("a@b.com", PW, full_name="A")
         r = self.client.post(reverse("accounts:login"), {"username": "a@b.com", "password": PW, "remember": "on"})
-        self.assertRedirects(r, reverse("dashboard"), fetch_redirect_response=False)
+        self.assertRedirects(r, reverse("home"), fetch_redirect_response=False)
         self.assertFalse(self.client.session.get_expire_at_browser_close())
 
     def test_login_without_remember_me_ends_with_browser(self):
@@ -61,15 +61,19 @@ class AuthTests(TestCase):
         self.assertEqual(self.client.get(reverse("dashboard")).status_code, 302)
 
     def test_private_pages_require_login(self):
-        for name in ("dashboard", "chat:index", "community:feed", "community:search", "accounts:edit_profile"):
+        for name in ("dashboard", "community:feed", "community:search", "accounts:edit_profile"):
             self.assertEqual(self.client.get(reverse(name)).status_code, 302, name)
 
-    def test_home_for_anonymous_and_redirect_for_members(self):
+    def test_home_is_the_chat_for_guests_and_members(self):
         User.objects.create_user("a@b.com", PW, full_name="A")
         r = self.client.get(reverse("home"))
-        self.assertContains(r, "Arai Go GU")
+        self.assertContains(r, 'data-guest="1"')
+        self.assertContains(r, "ทดลองใช้ฟรี")
         self.client.login(username="a@b.com", password=PW)
-        self.assertRedirects(self.client.get(reverse("home")), reverse("dashboard"), fetch_redirect_response=False)
+        r = self.client.get(reverse("home"))
+        self.assertContains(r, 'data-guest="0"')
+        self.assertNotContains(r, "ทดลองใช้ฟรี")
+        self.assertContains(self.client.get(reverse("about")), "Arai Go GU")  # the old landing page
 
 
 class ProfileEditTests(TestCase):

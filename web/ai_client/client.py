@@ -52,7 +52,7 @@ def chat(message: str, language: str, difficulty: str, history: list[dict],
         settings.AI_TIMEOUT_CHAT,
     )
     if data is None or not isinstance(data.get("reply"), str):
-        return {"reply": "ขออภัยครับ ระบบ AI ยังไม่พร้อมใช้งาน ลองใหม่อีกครั้งนะครับ 🐾", "topic": "general", "degraded": True}
+        return {"reply": "ขออภัยครับ ระบบ AI ยังไม่พร้อมใช้งาน ลองใหม่อีกครั้งนะครับ", "topic": "general", "degraded": True}
     return data
 
 

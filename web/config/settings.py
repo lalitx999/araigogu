@@ -85,7 +85,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 LOGIN_URL = "accounts:login"
-LOGIN_REDIRECT_URL = "dashboard"
+LOGIN_REDIRECT_URL = "home"  # the chat is the landing page
 LOGOUT_REDIRECT_URL = "home"
 
 LANGUAGE_CODE = "th"
@@ -137,6 +137,13 @@ AI_TIMEOUT_CHAT = 30.0
 AI_TIMEOUT_SHORT = 12.0
 AI_CHAT_HISTORY_LIMIT = 10
 AI_DAILY_CHAT_LIMIT = int(env("AI_DAILY_CHAT_LIMIT", "100"))  # per user, 0 = unlimited
+
+# --- guest trial (chat without an account) ---
+# Counted per browser session AND per IP; the IP cap is higher because a school or office
+# shares one IP, it only stops someone clearing cookies to get unlimited messages.
+GUEST_DAILY_CHAT_LIMIT = int(env("GUEST_DAILY_CHAT_LIMIT", "10"))
+GUEST_DAILY_IP_LIMIT = int(env("GUEST_DAILY_IP_LIMIT", "40"))
+GUEST_HISTORY_LIMIT = 20  # messages kept in the guest's session (imported into the account on sign-up)
 
 # --- rate limits: scope -> (max hits, window seconds) ---
 RATE_LIMIT_DISABLED = env_bool("RATE_LIMIT_DISABLED")

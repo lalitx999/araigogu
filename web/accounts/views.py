@@ -40,13 +40,13 @@ def sign_out(request):
 @rate_limited("register", by="ip")
 def register(request):
     if request.user.is_authenticated:
-        return redirect("dashboard")
+        return redirect("home")
     form = RegisterForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         user = form.save()
         ConsentLog.objects.create(user=user, ip_address=client_ip(request))
         login(request, user)
-        return redirect("dashboard")
+        return redirect("home")
     return render(request, "accounts/register.html", {"form": form})
 
 

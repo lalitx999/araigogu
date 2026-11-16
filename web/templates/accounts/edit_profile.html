@@ -154,7 +154,7 @@
             const traits = archetype.traits.split('\n').filter(t => t.trim()).slice(0, 3);
             const name = archetype.name;
 
-            let bio = `✨ ${name} ✨\n\n`;
+            let bio = `${name}\n\n`;
             bio += "ลักษณะเด่น:\n";
             traits.forEach(trait => {
                 bio += `• ${trait.trim()}\n`;

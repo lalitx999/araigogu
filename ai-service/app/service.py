@@ -1,5 +1,6 @@
 import json
 import random
+import re
 
 from .llm import LLM
 from .prompts import (
@@ -10,6 +11,19 @@ from .schemas import (
     ChatRequest, ChatResponse, CommentRequest, CommentResponse,
     ModerateRequest, ModerateResponse,
 )
+
+
+# Pictographs, flags, dingbats, keycaps and the joiners/selectors that glue emoji sequences together.
+# Thai, CJK, Latin and ordinary punctuation are outside these ranges.
+_EMOJI = re.compile(
+    "[\U0001F000-\U0001FAFF\u2600-\u27BF\u2B00-\u2BFF\uFE0E\uFE0F\u200D\u20E3\U000E0020-\U000E007F]+"
+)
+
+
+def strip_emoji(text: str) -> str:
+    """The product uses icons only; the prompt asks for no emoji and this enforces it."""
+    cleaned = _EMOJI.sub("", text)
+    return re.sub(r"[ \t]+\n", "\n", cleaned).strip()  # keep inner spacing: code blocks rely on it
 
 
 def detect_chat_topic(message: str) -> str:
@@ -68,7 +82,7 @@ async def chat(llm: LLM, req: ChatRequest) -> ChatResponse:
         )
 
     return ChatResponse(
-        reply=reply.strip(),
+        reply=strip_emoji(reply),
         topic=topic,
         degraded=False,
         model_used=model_used or "",
@@ -115,7 +129,7 @@ async def moderate(llm: LLM, req: ModerateRequest) -> ModerateResponse:
 def finalize_comment(text: str) -> str:
     for word in BANNED_COMMENT_WORDS:
         text = text.replace(word, "")
-    text = " ".join(text.split()).strip()
+    text = " ".join(strip_emoji(text).split()).strip()
     if not text:
         return random.choice(FALLBACK_COMMENTS)
     if not text.endswith("ครับ"):

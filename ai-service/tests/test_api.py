@@ -46,7 +46,8 @@ def test_chat_includes_history_and_detects_topic():
         "history": [{"role": "user", "content": "a"}, {"role": "assistant", "content": "b"}],
     })
     assert r.status_code == 200
-    assert r.json() == {"reply": "สวัสดีครับ", "topic": "food", "degraded": False}
+    res = r.json()
+    assert res["reply"] == "สวัสดีครับ" and res["topic"] == "food" and res["degraded"] is False
     roles = [m["role"] for m in fake.calls[0][0]]
     assert roles == ["system", "user", "assistant", "user"]
 
@@ -119,7 +120,10 @@ class _Boom:
 
 
 def test_llm_returns_none_without_key_and_on_errors():
-    assert asyncio.run(LLM(Settings(ai_internal_token="t")).complete([{"role": "user", "content": "x"}])) is None
+    # _env_file=None and empty keys: a real .env / exported key on the dev machine must not leak in
+    no_keys = Settings(_env_file=None, ai_internal_token="t", openai_api_key="", gemini_api_key="",
+                       groq_api_key="", deepseek_api_key="")
+    assert asyncio.run(LLM(no_keys).complete([{"role": "user", "content": "x"}])) is None
     llm = LLM(Settings(ai_internal_token="t", openai_api_key="sk-test"))
     llm._client = _Boom()
     assert asyncio.run(llm.complete([{"role": "user", "content": "x"}])) is None
@@ -164,3 +168,9 @@ def test_chat_falls_back_to_builtin_names_and_omits_empty_goal():
     c.post("/v1/chat", headers=H, json={"message": "hi", "language": "ja"})
     system = fake.calls[0][0][0]["content"]
     assert "ภาษาญี่ปุ่น" in system and "เป้าหมายของผู้เรียน" not in system
+
+
+def test_replies_never_contain_emoji():
+    from app.service import strip_emoji
+    assert strip_emoji("สวัสดีครับ 🐾\n**こんにちは** ✨ 你好 🇯🇵 ok 👍🏽") == "สวัสดีครับ\n**こんにちは**  你好  ok"
+    assert strip_emoji("```\n    indented code\n```") == "```\n    indented code\n```"

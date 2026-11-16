@@ -3,12 +3,13 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
-from chat.views import dashboard
+from chat.views import dashboard, index as chat_home
 
 from . import views
 
 urlpatterns = [
-    path("", views.home, name="home"),
+    path("", chat_home, name="home"),  # open the site, land in the chat
+    path("about/", views.about, name="about"),
     path("healthz", views.healthz, name="healthz"),
     path("dashboard/", dashboard, name="dashboard"),
     path("admin/", admin.site.urls),

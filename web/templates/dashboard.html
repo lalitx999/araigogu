@@ -78,7 +78,7 @@
         <div class="dashboard-hero fade-in">
             <div class="welcome-badge" data-name="{{ user.full_name }}">
                 สวัสดี,
-                {{ user.full_name }}! 👋
+                {{ user.full_name }}
             </div>
             <h1 class="dashboard-title">แดชบอร์ดการเรียนรู้</h1>
             <p class="dashboard-subtitle">
@@ -255,9 +255,7 @@
                                 <div class="language-item" data-code="{{ lang.code }}"
                                     onclick="selectLanguage('{{ lang.code }}', this)">
                                     <span class="language-name">
-                                        <span class="me-2">
-                                            {{ lang.flag }}
-                                        </span>
+                                        <span class="me-2 text-uppercase small text-muted">{{ lang.code }}</span>
                                         {{ lang.name }}
                                         {% if lang.native_name %}
                                         <span class="text-muted ms-2">(
@@ -434,7 +432,7 @@
                             สนับสนุนผ่าน Tipme
                         </a>
                         <p style="margin-top: 24px; color: #999; font-size: 0.85rem;">
-                            ทุกการสนับสนุนมีความหมายกับเรา ❤️
+                            ทุกการสนับสนุนมีความหมายกับเรา
                         </p>
                     </div>
                 `,
@@ -587,7 +585,7 @@
                 greeting = 'สวัสดีตอนเย็น';
             }
 
-            greetingBadge.textContent = `${greeting}, ${greetingBadge.dataset.name}! 👋`;
+            greetingBadge.textContent = `${greeting}, ${greetingBadge.dataset.name}`;
         }
     </script>
 </body>
