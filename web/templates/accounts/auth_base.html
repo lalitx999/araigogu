@@ -1,35 +1,39 @@
 {% load static %}<!DOCTYPE html>
-<html lang="th" data-theme="light">
-
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <title>{% block title %}Arai Go GU{% endblock %}</title>
+    <title>{% block title %}ARAI GO GU{% endblock %}</title>
     <link rel="icon" href="{% static 'img/ryupro.ico' %}">
-    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    {% include "app/_theme_init.html" %}
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
-    <link rel="stylesheet" href="{% static 'css/pages/login.css' %}">
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}">
 </head>
+<body class="auth">
+    <div class="bg-blur" aria-hidden="true"><span></span><span></span><span></span></div>
 
-<body>
-    <div class="login-decorations">
-        <div class="decoration-circle circle-1"></div>
-        <div class="decoration-circle circle-2"></div>
-    </div>
-    <div class="login-container">
-        <div class="login-card">
-            <div class="login-logo">
-                <a href="{% url 'home' %}">
-                    <div class="logo-icon"><i class="bi bi-translate"></i></div>
-                    <span>Arai Go GU</span>
-                </a>
-            </div>
+    <header class="auth-top">
+        <a href="{% url 'home' %}" class="brand-lockup">
+            <img src="{% static 'img/Ryupro.png' %}" alt="" class="avatar avatar-sm">
+            <span class="brand">ARAI GO GU</span>
+        </a>
+        <button type="button" class="icon-btn" data-theme-toggle title="สลับธีม" aria-label="สลับธีม"><i class="bi bi-circle-half"></i></button>
+    </header>
+
+    <main class="auth-wrap{% block wrap_class %}{% endblock %}">
+        {% block aside %}{% endblock %}
+        <section class="auth-card panel">
             {% block content %}{% endblock %}
-        </div>
-    </div>
-    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-</body>
+        </section>
+    </main>
 
+    <div class="toast-pill" id="toast" role="status" aria-live="polite"></div>
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'js/app.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
 </html>

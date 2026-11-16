@@ -1,0 +1,117 @@
+{% load static %}<aside class="side" id="side" aria-label="เมนูหลัก">
+    <div class="side-head">
+        <button type="button" class="icon-btn" id="sideToggle" title="ย่อ/ขยายเมนู" aria-label="ย่อหรือขยายเมนู">
+            <i class="bi bi-list"></i>
+        </button>
+        <a href="{% url 'home' %}" class="brand label">ARAI GO GU</a>
+    </div>
+
+    <nav class="side-nav" aria-label="ส่วนหลัก">
+        <a href="{% url 'home' %}" class="side-item side-new" id="newChatBtn" title="แชทใหม่">
+            <i class="bi bi-pencil-square"></i><span class="label">แชทใหม่</span>
+        </a>
+        {% if user.is_authenticated %}
+        <a href="{% url 'community:feed' %}" class="side-item{% if nav_section == 'community' %} active{% endif %}" title="ชุมชน">
+            <i class="bi bi-people"></i><span class="label">ชุมชน</span>
+        </a>
+        <a href="{% url 'dashboard' %}" class="side-item{% if nav_section == 'progress' %} active{% endif %}" title="ความก้าวหน้า">
+            <i class="bi bi-graph-up"></i><span class="label">ความก้าวหน้า</span>
+        </a>
+        {% endif %}
+    </nav>
+
+    <div class="side-scroll">
+        <div class="side-label label">หัวข้อการเรียน</div>
+        <nav class="side-group" aria-label="หัวข้อการเรียน">
+            {% for t in topics %}
+            <a href="{% url 'home' %}?topic={{ t.key }}" class="side-item topic-btn" title="{{ t.title }}"
+               data-prompt="{{ t.prompt }}" data-needs-image="{% if t.needs_image %}1{% else %}0{% endif %}">
+                <i class="bi {{ t.icon }}"></i><span class="label">{{ t.title }}</span>
+            </a>
+            {% endfor %}
+        </nav>
+
+        <div class="side-label label">ล่าสุด</div>
+        {% if not user.is_authenticated %}
+        <div class="side-note label">
+            <i class="bi bi-clock-history"></i>
+            <span>เข้าสู่ระบบเพื่อบันทึกประวัติแชท บทสนทนาที่ทดลองไว้จะถูกย้ายเข้าบัญชีให้อัตโนมัติ</span>
+        </div>
+        {% else %}
+        {% if sidebar_sessions %}
+        <div class="side-search label">
+            <i class="bi bi-search"></i>
+            <input type="search" id="historySearch" placeholder="ค้นหาแชท" aria-label="ค้นหาประวัติแชท">
+        </div>
+        {% endif %}
+        <nav class="side-group" id="historyList" aria-label="ประวัติแชท">
+            {% for s in sidebar_sessions %}
+            <a href="{% url 'chat:detail' s.pk %}" class="side-item history-item{% if current and current.pk == s.pk %} active{% endif %}"
+               data-session-id="{{ s.pk }}" title="{{ s.title }}">
+                <i class="bi bi-chat-left"></i><span class="label">{{ s.title }}</span>
+                <button type="button" class="history-del" data-delete-id="{{ s.pk }}" title="ลบแชทนี้" aria-label="ลบแชทนี้">
+                    <i class="bi bi-trash3"></i>
+                </button>
+            </a>
+            {% empty %}
+            <p class="side-note label" id="historyEmpty"><i class="bi bi-chat-left"></i><span>ยังไม่มีประวัติแชท</span></p>
+            {% endfor %}
+        </nav>
+        {% endif %}
+    </div>
+
+    <div class="side-foot">
+        {% if not user.is_authenticated %}
+        <div class="trial-card label" id="trialCard">
+            <div class="trial-top">
+                <span><i class="bi bi-stars"></i> ทดลองใช้ฟรี</span>
+                <span class="trial-count"><b id="quotaRemaining">{{ quota.remaining }}</b>/{{ quota.limit }}</span>
+            </div>
+            <div class="trial-bar"><span id="quotaBar" style="width: {% widthratio quota.used quota.limit 100 %}%"></span></div>
+            <p>ข้อความที่เหลือวันนี้ สมัครฟรีเพื่อใช้ได้ {{ member_limit|default:'100' }} ข้อความต่อวัน</p>
+            <a href="{% url 'accounts:register' %}" class="btn-solid w-100">สมัครสมาชิกฟรี</a>
+            <a href="{% url 'accounts:login' %}" class="btn-ghost w-100">เข้าสู่ระบบ</a>
+        </div>
+        <a href="{% url 'accounts:login' %}" class="side-item guest-rail" title="เข้าสู่ระบบ">
+            <i class="bi bi-box-arrow-in-right"></i>
+        </a>
+        {% else %}
+        <div class="dropup w-100">
+            <button type="button" class="profile-btn" data-bs-toggle="dropdown" aria-expanded="false" title="บัญชีและการตั้งค่า">
+                <img src="{{ user.avatar_url }}" alt="" class="avatar">
+                <span class="profile-meta label">
+                    <span class="profile-name">{{ user.full_name|default:user.email }}</span>
+                    <span class="profile-plan">แผนฟรี{% if member_quota.limit %} · ใช้ไป <span id="quotaUsed">{{ member_quota.used }}</span>/{{ member_quota.limit }} วันนี้{% endif %}</span>
+                </span>
+                <i class="bi bi-three-dots-vertical label"></i>
+            </button>
+            <div class="dropdown-menu profile-menu">
+                <div class="profile-card">
+                    <img src="{{ user.avatar_url }}" alt="" class="avatar avatar-lg">
+                    <div class="min-w-0">
+                        <div class="profile-name">{{ user.full_name|default:user.email }}</div>
+                        <div class="profile-mail">{{ user.email }}</div>
+                    </div>
+                </div>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="{% url 'community:profile' user.pk %}"><i class="bi bi-person"></i>โปรไฟล์ของฉัน</a>
+                <a class="dropdown-item{% if nav_section == 'settings' %} active{% endif %}" href="{% url 'accounts:edit_profile' %}"><i class="bi bi-gear"></i>ตั้งค่า</a>
+                <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#supportModal"><i class="bi bi-heart"></i>สนับสนุนเรา</button>
+                <a class="dropdown-item" href="{% url 'about' %}"><i class="bi bi-info-circle"></i>เกี่ยวกับ ARAI GO GU</a>
+                {% if user.is_staff %}<a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-shield-lock"></i>ผู้ดูแลระบบ</a>{% endif %}
+                <div class="dropdown-divider"></div>
+                <div class="theme-row">
+                    <span><i class="bi bi-circle-half"></i>ธีม</span>
+                    <div class="seg" role="group" aria-label="ธีม">
+                        <button type="button" data-theme-set="light" title="สว่าง" aria-label="สว่าง"><i class="bi bi-sun"></i></button>
+                        <button type="button" data-theme-set="dark" title="มืด" aria-label="มืด"><i class="bi bi-moon"></i></button>
+                        <button type="button" data-theme-set="system" title="ตามระบบ" aria-label="ตามระบบ"><i class="bi bi-display"></i></button>
+                    </div>
+                </div>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right"></i>ออกจากระบบ</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</aside>

@@ -9,7 +9,6 @@
 
     const $ = (id) => document.getElementById(id);
     const body = document.body;
-    const root = document.documentElement;
     const cfg = {
         guest: body.dataset.guest === "1",
         sessionId: body.dataset.sessionId || "",
@@ -20,7 +19,7 @@
         guestResetUrl: body.dataset.guestResetUrl,
         homeUrl: body.dataset.homeUrl,
     };
-    const csrf = document.querySelector('meta[name="csrf-token"]').content;
+    const { post } = window.AGG;  // shared helpers from app.js
     const BOT_AVATAR = body.dataset.botAvatar;
 
     const app = $("app"), stage = $("stage"), thread = $("thread"), welcome = $("welcome");
@@ -28,11 +27,6 @@
     const fileInput = $("fileInput"), attach = $("attach");
     let imageFile = null, sending = false;
     let mode = { provider: "groq", model: "openai/gpt-oss-120b" };
-
-    const store = {
-        get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
-        set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* storage blocked */ } },
-    };
 
     // ---------- safe markdown ----------
     function escapeHtml(s) {
@@ -96,52 +90,11 @@
         return out.join("").replace(/\u0000(\d+)\u0000/g, (_, n) => keep[+n]);
     }
 
-    // ---------- theme ----------
-    function applyTheme(t) {
-        if (t === "system") root.removeAttribute("data-theme"); else root.setAttribute("data-theme", t);
-        store.set("agg-theme", t);
-        document.querySelectorAll("[data-theme-set]").forEach((b) => b.classList.toggle("on", b.dataset.themeSet === t));
-    }
-    applyTheme(store.get("agg-theme") || "system");
-    document.querySelectorAll("[data-theme-set]").forEach((b) => b.addEventListener("click", () => applyTheme(b.dataset.themeSet)));
-    $("themeQuick")?.addEventListener("click", () => {
-        const dark = root.getAttribute("data-theme") === "dark" ||
-            (!root.getAttribute("data-theme") && window.matchMedia("(prefers-color-scheme: dark)").matches);
-        applyTheme(dark ? "light" : "dark");
-    });
-
-    // ---------- sidebar ----------
-    $("sideToggle")?.addEventListener("click", () => {
-        root.classList.toggle("side-collapsed");
-        store.set("agg-side", root.classList.contains("side-collapsed") ? "collapsed" : "open");
-    });
-    $("mobileMenu")?.addEventListener("click", () => app.classList.add("side-open"));
-    $("backdrop")?.addEventListener("click", () => app.classList.remove("side-open"));
-
-    $("historySearch")?.addEventListener("input", (e) => {
-        const q = e.target.value.trim().toLowerCase();
-        document.querySelectorAll(".history-item").forEach((a) => {
-            a.hidden = q && !a.title.toLowerCase().includes(q);
-        });
-    });
-
-    $("historyList")?.addEventListener("click", (e) => {
-        const del = e.target.closest("[data-delete-id]");
-        if (!del) return;
+    // ---------- new chat: guests forget the trial conversation (members just follow the link) ----------
+    $("newChatBtn")?.addEventListener("click", (e) => {
+        if (!cfg.guest) return;
         e.preventDefault();
-        e.stopPropagation();
-        if (!window.confirm("ลบแชทนี้ใช่ไหม ลบแล้วกู้คืนไม่ได้")) return;
-        const id = del.dataset.deleteId;
-        post("/chat/" + encodeURIComponent(id) + "/delete/").then(({ ok }) => {
-            if (!ok) return;
-            if (String(cfg.sessionId) === String(id)) window.location.href = cfg.homeUrl;
-            else del.closest(".history-item")?.remove();
-        });
-    });
-
-    $("newChatBtn").addEventListener("click", () => {
-        if (!cfg.guest) { window.location.href = cfg.homeUrl; return; }
-        post(cfg.guestResetUrl).then(() => window.location.reload());
+        post(cfg.guestResetUrl).then(() => { window.location.href = cfg.homeUrl; });
     });
 
     // ---------- language / level picker ----------
@@ -261,18 +214,29 @@
         });
     }
 
-    // topics: sidebar + welcome cards fill the composer
-    document.querySelectorAll(".topic-btn").forEach((btn) => btn.addEventListener("click", () => {
+    // topics: sidebar links and welcome cards fill the composer instead of navigating
+    function useTopic(prompt, needsImage) {
         app.classList.remove("side-open");
-        if (btn.dataset.needsImage === "1") {
+        if (needsImage) {
             if (cfg.guest) { showJoin(); return; }
             fileInput.click();
         }
-        input.value = btn.dataset.prompt || "";
+        input.value = prompt || "";
         grow(); refreshSend();
         input.focus();
         input.setSelectionRange(input.value.length, input.value.length);
+    }
+    document.querySelectorAll(".topic-btn").forEach((btn) => btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        useTopic(btn.dataset.prompt, btn.dataset.needsImage === "1");
     }));
+    // arriving from another page via /?topic=key
+    const topicKey = new URLSearchParams(window.location.search).get("topic");
+    if (topicKey) {
+        const link = document.querySelector('.side-item.topic-btn[href$="topic=' + CSS.escape(topicKey) + '"]');
+        window.history.replaceState(null, "", window.location.pathname);
+        if (link && !cfg.locked) useTopic(link.dataset.prompt, false);
+    }
 
     // ---------- rendering ----------
     function scrollDown() { stage.scrollTop = stage.scrollHeight; }
@@ -392,15 +356,6 @@
     }
 
     // ---------- send ----------
-    function post(url, formData) {
-        return fetch(url, {
-            method: "POST",
-            headers: { "X-CSRFToken": csrf, "X-Requested-With": "XMLHttpRequest" },
-            body: formData,
-            credentials: "same-origin",
-        }).then((res) => res.json().catch(() => ({})).then((data) => ({ ok: res.ok, status: res.status, data })));
-    }
-
     composer.addEventListener("submit", (e) => {
         e.preventDefault();
         const text = input.value.trim();

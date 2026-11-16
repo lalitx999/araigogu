@@ -48,6 +48,30 @@ class DashboardTests(Base):
         self.assertNotIn("`;alert(1)", html.split("<script>")[-1])
 
 
+class ProgressTests(Base):
+    def test_streak_activity_and_language_stats(self):
+        from datetime import timedelta
+        from django.utils import timezone
+        now = timezone.now()
+        for days_ago in (0, 1, 2, 5):  # streak = 3 (today, yesterday, day before), day 5 breaks it
+            m = Message.objects.create(session=self.s, role="user", content="x")
+            Message.objects.filter(pk=m.pk).update(created_at=now - timedelta(days=days_ago))
+        Message.objects.create(session=self.s, role="assistant", content="not counted")
+        r = self.client.get(reverse("dashboard"))
+        self.assertEqual(r.context["streak"], 3)
+        self.assertEqual(r.context["totals"], {"chats": 1, "messages": 4, "languages": 1})
+        activity = r.context["activity"]
+        self.assertEqual(len(activity), 7)
+        self.assertEqual(sum(d["count"] for d in activity), 4)
+        self.assertTrue(activity[-1]["is_today"])
+        self.assertEqual(r.context["language_stats"][0]["name"], "ภาษาญี่ปุ่น")
+
+    def test_no_activity_means_no_streak(self):
+        r = self.client.get(reverse("dashboard"))
+        self.assertEqual(r.context["streak"], 0)
+        self.assertContains(r, "ยังไม่มีข้อมูล")
+
+
 class CreateTests(Base):
     def create(self, **data):
         return self.client.post(reverse("chat:create"), data)

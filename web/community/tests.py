@@ -27,11 +27,11 @@ class Base(TestCase):
 
 
 class FeedTests(Base):
-    def test_feed_has_original_layout_and_composer(self):
+    def test_feed_is_in_the_app_shell_with_composer(self):
         html = self.client.get(reverse("community:feed")).content.decode()
-        for marker in ("RYU COMMUNITY", 'class="post-input-area"', 'class="bottom-nav"', "POST</button>"):
+        for marker in ('class="side"', 'class="post-input-area', 'action="/community/post/new/"', "โพสต์</button>"):
             self.assertIn(marker, html)
-        self.assertNotIn("1/1 Post Today", html)
+        self.assertNotIn("วันนี้คุณแบ่งปันเรื่องราวแล้ว", html)
 
     def test_cards_show_author_counts_and_state(self):
         p = Post.objects.create(author=self.o, content="ชิบะน่ารัก")
@@ -88,8 +88,8 @@ class PostingTests(Base):
         self.assertEqual(Post.objects.count(), 1)
         self.assertEqual(moderate.call_count, calls)  # no OpenAI call spent on a refused post
         html = self.client.get(reverse("community:feed")).content.decode()
-        self.assertIn("1/1 Post Today", html)
-        self.assertNotIn('class="post-input-area"><form', html.replace("\n", "").replace("  ", ""))
+        self.assertIn("วันนี้คุณแบ่งปันเรื่องราวแล้ว", html)
+        self.assertNotIn('action="/community/post/new/"', html)
 
     def test_empty_or_too_long(self):
         self.assertRedirects(self.create("  "), f"{reverse('community:feed')}?error=empty_content", fetch_redirect_response=False)
@@ -240,12 +240,12 @@ class ProfileSearchTests(Base):
         html = self.client.get(reverse("community:profile", args=[self.u.pk])).content.decode()
         self.assertIn("โพสต์ของฉัน", html)
         self.assertIn("โพสต์คนอื่น", html)
-        self.assertIn("REPOSTED", html)
+        self.assertIn("รีโพสต์", html)
         self.assertIn("B Archetype", html)
-        self.assertIn(reverse("accounts:edit_profile"), html)          # own profile -> Edit Profile
+        self.assertIn("แก้ไขโปรไฟล์", html)          # own profile -> edit button
         other = self.client.get(reverse("community:profile", args=[self.o.pk])).content.decode()
-        self.assertNotIn(reverse("accounts:edit_profile"), other)
-        self.assertIn("No bio yet.", other)
+        self.assertNotIn("แก้ไขโปรไฟล์", other)
+        self.assertIn("ยังไม่มีคำแนะนำตัว", other)
         self.assertEqual(self.client.get(reverse("community:profile", args=[99999])).status_code, 404)
 
     def test_search_finds_users_by_name_or_email_and_lists_trends_and_suggestions(self):

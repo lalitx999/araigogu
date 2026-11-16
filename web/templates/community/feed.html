@@ -1,151 +1,73 @@
-{% load static humanize ryu %}<!DOCTYPE html>
-<html lang="th">
+{% extends "community/_base.html" %}
+{% load static %}
+{% block title %}ชุมชน{% endblock %}
+{% block body_attrs %}data-ryu-url="{{ ryu_url }}" data-ryu-post="{{ ryu_post_id }}"{% endblock %}
+{% block page_title %}ชุมชน{% endblock %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token }}">
-    <title>Ryu Community | Arai Go Gu</title>
-    <link rel="icon" href="{% static 'img/ryupro.ico' %}">
+{% block feed %}
+{% if error %}
+<div class="notice" role="alert">
+    <i class="bi bi-info-circle"></i>
+    <span>{% if error == 'already_posted' %}วันนี้คุณได้แบ่งปันเรื่องราวไปแล้ว เจอกันใหม่พรุ่งนี้นะครับ{% elif error == 'empty_content' %}กรุณาใส่เนื้อหาที่ต้องการโพสต์ครับ{% elif error == 'inappropriate' %}เนื้อหามีบางส่วนที่ไม่เหมาะสม กรุณาปรับเปลี่ยนนะครับ{% else %}เกิดข้อผิดพลาดบางอย่าง กรุณาลองใหม่ครับ{% endif %}</span>
+    <button type="button" class="notice-close" aria-label="ปิด"><i class="bi bi-x-lg"></i></button>
+</div>
+{% endif %}
 
-    <!-- Bootstrap 5 + Icons + fonts: all served locally (no CDN) -->
-    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
-    <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
-    <link rel="stylesheet" href="{% static 'css/pages/feed.css' %}">
-</head>
-
-<body data-ryu-url="{{ ryu_url }}" data-ryu-post="{{ ryu_post_id }}">
-    <div class="feed-container">
-        <!-- Header -->
-        <div class="px-4 py-3 sticky-top bg-white border-bottom d-flex align-items-center justify-content-between">
-            <h5 class="fw-800 mb-0">RYU COMMUNITY</h5>
-            <i class="bi bi-stars text-dark"></i>
-        </div>
-
-        <!-- Alerts -->
-        {% if error %}
-        <div class="alert alert-warning alert-dismissible fade show m-3 rounded-4" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            {% if error == 'already_posted' %}วันนี้คุณได้แบ่งปันเรื่องราวไปแล้วครับ เจอกันใหม่พรุ่งนี้นะ!{% elif error == 'empty_content' %}กรุณาใส่เนื้อหาที่ต้องการโพสต์ครับ{% elif error == 'inappropriate' %}เนื้อหามีบางส่วนที่ไม่เหมาะสม กรุณาปรับเปลี่ยนนะครับ{% else %}เกิดข้อผิดพลาดบางอย่าง กรุณาลองใหม่ครับ{% endif %}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        {% endif %}
-
-        <!-- Create Post -->
-        <div class="post-input-area">
-            {% if can_post %}
-            <form action="{% url 'community:create_post' %}" method="POST">
-                {% csrf_token %}
-                <div class="d-flex gap-3">
-                    <a href="{% url 'community:profile' user.pk %}">
-                        <img src="{{ user.avatar_url }}" class="user-avatar"
-                            alt="Avatar">
-                    </a>
-                    <div class="flex-grow-1">
-                        <textarea name="content" class="form-control border-0 bg-transparent fs-5" rows="2"
-                            placeholder="เกิดอะไรขึ้นวันนี้พี่ริวอยากรู้..." style="resize: none; box-shadow: none;"
-                            required></textarea>
-                        <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
-                            <div>
-                                <button type="button" class="btn btn-link text-dark p-0 me-3"><i
-                                        class="bi bi-image"></i></button>
-                                <button type="button" class="btn btn-link text-dark p-0 me-3"><i
-                                        class="bi bi-list-stars"></i></button>
-                                <button type="button" class="btn btn-link text-dark p-0"><i
-                                        class="bi bi-emoji-smile"></i></button>
-                            </div>
-                            <button type="submit" class="btn btn-post">POST</button>
-                        </div>
-                    </div>
-                </div>
-            </form>
-            {% else %}
-            <div class="text-center py-4 bg-light rounded-4">
-                <i class="bi bi-moon-stars fs-1 text-muted mb-2"></i>
-                <h6 class="fw-800">คุณได้แบ่งปันเรื่องราวไปแล้ว</h6>
-                <p class="text-muted small">พี่ริวได้รับพลังใจจากคุณแล้วครับ เจอกันใหม่พรุ่งนี้นะ!</p>
-                <span class="badge bg-dark rounded-pill px-3 py-2">1/1 Post Today</span>
+<div class="post-input-area panel">
+    {% if can_post %}
+    <form action="{% url 'community:create_post' %}" method="POST" class="composer-post">
+        {% csrf_token %}
+        <img src="{{ user.avatar_url }}" class="avatar avatar-md" alt="">
+        <div class="flex-grow-1 min-w-0">
+            <textarea name="content" class="auto-expand-textarea" rows="2" maxlength="1000" required id="postContent"
+                      placeholder="วันนี้เรียนอะไรมา เล่าให้พี่ริวกับเพื่อนๆ ฟังหน่อย" aria-label="เขียนโพสต์"></textarea>
+            <div class="composer-post-foot">
+                <span class="small-note"><i class="bi bi-shield-check"></i> โพสต์ได้วันละ 1 ครั้ง พี่ริวช่วยตรวจความสุภาพก่อนเผยแพร่</span>
+                <span class="small-note" id="postCount">0/1000</span>
+                <button type="submit" class="btn-solid btn-sm-pill">โพสต์</button>
             </div>
-            {% endif %}
         </div>
-
-        <!-- Feed -->
-        <div id="postsFeed" data-next="{{ next_url }}">
-            {% include "community/_feed_posts.html" %}
-        </div>
-        <div class="text-center py-4"{% if not next_url %} hidden{% endif %} id="loadMoreWrap">
-            <button type="button" id="loadMoreBtn" class="btn btn-light rounded-pill fw-700 px-4">โหลดเพิ่ม</button>
-        </div>
-    </div>
-
-    <!-- Bottom Nav -->
-    <nav class="bottom-nav">
-        <a href="{% url 'community:feed' %}" class="nav-item active"><i class="bi bi-house-door fs-4"></i><span
-                class="nav-label">Home</span></a>
-        <a href="{% url 'community:search' %}" class="nav-item"><i class="bi bi-search fs-4"></i><span
-                class="nav-label">Explore</span></a>
-        <a href="{% url 'community:profile' user.pk %}" class="nav-item"><i class="bi bi-person fs-4"></i><span
-                class="nav-label">Profile</span></a>
-    </nav>
-
-    <!-- AI Moderation Modal (Triggered by Param) -->
-    {% if pending %}
-    <div class="modal fade show d-block" id="moderationModal" tabindex="-1" style="background: rgba(0,0,0,0.5);">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg rounded-4">
-                <div class="modal-body p-4 text-center">
-                    <img src="{% static 'img/Ryupro.png' %}" alt="Ryu" width="60" class="mb-3">
-                    <h5 class="fw-800 mb-2">พี่ริวขอแนะนำ...</h5>
-                    <p class="text-muted small mb-4">พี่ริวพบว่าเนื้อหามีคำไม่สุภาพ พี่ริวปรับให้แล้ว
-                        ลองดูนะครับว่าชอบไหม?</p>
-                    <div class="suggested-post-box text-start mb-4">
-                        <p class="mb-0 fw-600">
-                            {{ pending.suggestion }}
-                        </p>
-                    </div>
-                    <form action="{% url 'community:review_decide' %}" method="POST">
-                        {% csrf_token %}
-                        <div class="d-grid gap-2">
-                            <button type="submit" name="choice" value="accept" class="btn btn-dark rounded-pill fw-700 py-2">ตกลง
-                                โพสต์ตามนี้</button>
-                            <button type="submit" name="choice" value="cancel" class="btn btn-light rounded-pill fw-700 py-2">แก้ไขเองดีกว่า</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+    </form>
+    {% else %}
+    <div class="posted-today">
+        <span class="posted-icon"><i class="bi bi-check2-circle"></i></span>
+        <div>
+            <strong>วันนี้คุณแบ่งปันเรื่องราวแล้ว</strong>
+            <div class="small-note">พี่ริวได้รับพลังใจจากคุณแล้วครับ เจอกันใหม่พรุ่งนี้</div>
         </div>
     </div>
     {% endif %}
+</div>
 
-    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-    <script>
-        // Auto-expand textarea
-        document.querySelectorAll('.auto-expand-textarea').forEach(textarea => {
-            textarea.addEventListener('input', function () {
-                this.style.height = 'auto';
-                this.style.height = (this.scrollHeight) + 'px';
+<div id="postsFeed" class="feed-list" data-next="{{ next_url }}">
+    {% include "community/_feed_posts.html" %}
+    {% if not page.object_list %}
+    <div class="empty"><i class="bi bi-chat-square-heart"></i><strong>ยังไม่มีโพสต์</strong>มาเป็นคนแรกที่แบ่งปันเรื่องราวกันเถอะ</div>
+    {% endif %}
+</div>
+<div class="text-center py-4" id="loadMoreWrap"{% if not next_url %} hidden{% endif %}>
+    <button type="button" id="loadMoreBtn" class="btn-ghost btn-sm-pill">โหลดเพิ่ม</button>
+</div>
+{% endblock %}
 
-                // Toggle overflow if max height reached
-                if (this.scrollHeight > 120) {
-                    this.style.overflowY = 'auto';
-                } else {
-                    this.style.overflowY = 'hidden';
-                }
-            });
-
-            // Handle Enter key (submit on Enter, new line on Shift+Enter)
-            textarea.addEventListener('keydown', function (e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    if (this.value.trim()) {
-                        this.closest('form').submit();
-                    }
-                }
-            });
-        });
-    </script>
-    <script src="{% static 'js/community.js' %}"></script>
-</body>
-
-</html>
+{% block modals %}
+{% if pending %}
+<!-- Shown without JS too: the page is rendered with the dialog open -->
+<div class="modal show d-block moderation-overlay" id="moderationModal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="moderationTitle">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content sheet">
+            <img src="{% static 'img/Ryupro.png' %}" alt="" class="avatar avatar-md mb-2">
+            <h2 id="moderationTitle" class="mt-0">พี่ริวขอแนะนำ...</h2>
+            <p class="muted mb-3">โพสต์มีบางคำที่อาจไม่เหมาะกับชุมชน พี่ริวเกลาให้แล้ว ลองดูนะครับว่าชอบไหม</p>
+            {% if pending.reason %}<p class="small-note mb-2"><i class="bi bi-info-circle"></i> {{ pending.reason }}</p>{% endif %}
+            <div class="suggested-post-box">{{ pending.suggestion|linebreaksbr }}</div>
+            <form action="{% url 'community:review_decide' %}" method="POST" class="d-grid gap-2 mt-3">
+                {% csrf_token %}
+                <button type="submit" name="choice" value="accept" class="btn-solid btn-lg-pill">โพสต์ตามนี้</button>
+                <button type="submit" name="choice" value="cancel" class="btn-ghost btn-lg-pill">แก้ไขเองดีกว่า</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

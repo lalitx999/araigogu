@@ -1,255 +1,158 @@
-{% load static humanize %}<!DOCTYPE html>
-<html lang="th">
+{% extends "app/base.html" %}
+{% load static %}
+{% block title %}ตั้งค่า{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/settings.css' %}">{% endblock %}
+{% block page_title %}ตั้งค่า{% endblock %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token }}">
-    <title>Edit Profile | Ryu Community</title>
-    <link rel="icon" href="{% static 'img/ryupro.ico' %}">
+{% block content %}
+<div class="page settings">
+    <nav class="settings-nav" aria-label="หมวดการตั้งค่า">
+        <a href="#account" class="side-item active"><i class="bi bi-person"></i><span>บัญชี</span></a>
+        <a href="#character" class="side-item"><i class="bi bi-stars"></i><span>ตัวละคร</span></a>
+        <a href="#appearance" class="side-item"><i class="bi bi-circle-half"></i><span>การแสดงผล</span></a>
+        <a href="{% url 'community:profile' user.pk %}" class="side-item"><i class="bi bi-box-arrow-up-right"></i><span>ดูโปรไฟล์ของฉัน</span></a>
+    </nav>
 
-    <!-- Bootstrap 5 + Icons + fonts: all served locally (no CDN) -->
-    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
-    <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
-    <link rel="stylesheet" href="{% static 'css/pages/edit_profile.css' %}">
-</head>
-
-<body>
-
-    <form action="{% url 'accounts:edit_profile' %}" method="POST" class="edit-card" id="profileForm">
+    <form action="{% url 'accounts:edit_profile' %}" method="POST" id="profileForm" class="settings-body">
         {% csrf_token %}
-
-        <!-- Header -->
-        <div class="card-header">
-            <h1 class="card-title">แก้ไขโปรไฟล์</h1>
-            <a href="{% url 'community:profile' user.pk %}" class="close-btn"><i class="bi bi-x-lg"></i></a>
+        {% if form.errors %}
+        <div class="notice notice-error" role="alert"><i class="bi bi-exclamation-circle"></i>
+            <span>{% for field in form %}{% for e in field.errors %}{{ e }} {% endfor %}{% endfor %}{% for e in form.non_field_errors %}{{ e }} {% endfor %}</span>
         </div>
+        {% endif %}
 
-        <div class="card-body">
-            <!-- User Info (Editable) -->
-            <div class="form-group">
-                <label class="form-label">ชื่อที่ใช้แสดง</label>
-                <input type="text" name="full_name" class="form-control"
-                    value="{{ profile.full_name }}" required>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">คำแนะนำตัว (ปรับเปลี่ยนอัตโนมัติตามตัวละคร)</label>
-                <div class="bio-preview" id="bioPreview">
-                    {{ profile.bio|linebreaksbr }}
-                </div>
-                <input type="hidden" name="bio" id="bioInput" value="{{ profile.bio }}">
-                <div class="helper-text">คำแนะนำตัวจะเปลี่ยนไปตามตัวละครที่คุณเลือก</div>
-            </div>
-
-            <!-- Archetype Selector -->
-            <div class="archetype-section">
-                <label class="form-label">เลือกตัวละครประจำตัว</label>
-                <p class="helper-text">เลือกคาแรคเตอร์ที่ตรงกับความเป็นคุณ (คลิกเพื่อดูรายละเอียด)</p>
-
-                <input type="hidden" name="archetype" id="selectedArchetypeInput"
-                    value="{{ profile.archetype }}">
-
-                <div class="grid-container">
-                    {% for a in archetypes %}
-                    
-                    <div class="archetype-card {% if profile.archetype == a.key %}active{% endif %}" onclick="selectArchetype('{{ a.key }}', 
-                            '{{ a.name|escapejs }}', 
-                            '{{ a.traits|escapejs }}', 
-                            '{{ a.story|escapejs }}')" data-key="{{ a.key }}"
-                        data-name="{{ a.name }}"
-                        data-traits="{{ a.traits }}"
-                        data-story="{{ a.story }}">
-                        <img src="{% static a.icon %}"
-                            onerror="this.onerror=null;this.src='{% static 'img/Ryupro.png' %}'"
-                            class="archetype-img" alt="{{ a.name }}" loading="lazy">
-                        <span class="archetype-name">
-                            {{ a.name }}
-                        </span>
-                    </div>
-                    {% endfor %}
-                </div>
-
-                <!-- Selected Archetype Info -->
-                <div class="selected-archetype-info" id="selectedArchetypeInfo">
-                    <div class="selected-archetype-title" id="selectedArchetypeName"></div>
-                    <div class="selected-archetype-traits" id="selectedArchetypeTraits"></div>
-                    <div class="helper-text mt-2" id="selectedArchetypeStory"></div>
+        <section class="panel panel-pad" id="account">
+            <h2 class="settings-h">บัญชี</h2>
+            <div class="account-row">
+                <img src="{{ profile.avatar_url }}" alt="" class="avatar avatar-md" id="avatarPreview">
+                <div class="min-w-0">
+                    <div class="fw-semibold text-truncate">{{ profile.email }}</div>
+                    <div class="small-note">รูปโปรไฟล์จะเปลี่ยนตามตัวละครที่เลือก</div>
                 </div>
             </div>
-        </div>
+            <div class="field mt-3">
+                <label class="field-label" for="fullName">ชื่อที่ใช้แสดง</label>
+                <input type="text" id="fullName" name="full_name" class="input" value="{{ profile.full_name }}" maxlength="150" required>
+            </div>
+            <div class="field mb-0">
+                <label class="field-label" for="bioInput">คำแนะนำตัว
+                    <button type="button" class="link-btn" id="bioFromCharacter"><i class="bi bi-magic"></i>เขียนจากตัวละคร</button>
+                </label>
+                <textarea id="bioInput" name="bio" rows="4" maxlength="300" placeholder="เล่าเกี่ยวกับตัวคุณ หรือกดเขียนจากตัวละคร">{{ profile.bio }}</textarea>
+                <div class="small-note text-end"><span id="bioCount">0</span>/300</div>
+            </div>
+        </section>
 
-        <!-- Footer Actions -->
-        <div class="card-footer">
-            <a href="{% url 'community:profile' user.pk %}" class="btn btn-cancel">ยกเลิก</a>
-            <button type="submit" class="btn btn-save" id="saveBtn">บันทึกการเปลี่ยนแปลง</button>
-        </div>
+        <section class="panel panel-pad" id="character">
+            <h2 class="settings-h">ตัวละครประจำตัว</h2>
+            <p class="small-note mb-3">เลือกคาแรกเตอร์ที่ตรงกับความเป็นคุณ แสดงบนโปรไฟล์และโพสต์ในชุมชน</p>
+            <input type="hidden" name="archetype" id="selectedArchetypeInput" value="{{ profile.archetype }}">
+            <div class="char-grid" role="radiogroup" aria-label="ตัวละคร">
+                <button type="button" class="char-card{% if not profile.archetype %} active{% endif %}" data-key="" role="radio"
+                        aria-checked="{% if not profile.archetype %}true{% else %}false{% endif %}">
+                    <span class="char-none"><i class="bi bi-person"></i></span>
+                    <span class="char-name">ไม่เลือก</span>
+                </button>
+                {% for a in archetypes %}
+                <button type="button" class="char-card{% if profile.archetype == a.key %} active{% endif %}" data-key="{{ a.key }}" role="radio"
+                        aria-checked="{% if profile.archetype == a.key %}true{% else %}false{% endif %}">
+                    <img src="{% static a.icon %}" alt="" loading="lazy" data-fallback="{% static 'img/Ryupro.png' %}">
+                    <span class="char-name">{{ a.name }}</span>
+                </button>
+                {% endfor %}
+            </div>
+            <div class="char-info" id="selectedArchetypeInfo" hidden>
+                <div class="char-info-title" id="selectedArchetypeName"></div>
+                <div class="char-info-traits" id="selectedArchetypeTraits"></div>
+                <div class="char-info-story" id="selectedArchetypeStory"></div>
+            </div>
+        </section>
 
+        <section class="panel panel-pad" id="appearance">
+            <h2 class="settings-h">การแสดงผล</h2>
+            <div class="theme-pick" role="group" aria-label="ธีม">
+                <button type="button" data-theme-set="light"><i class="bi bi-sun"></i>สว่าง</button>
+                <button type="button" data-theme-set="dark"><i class="bi bi-moon"></i>มืด</button>
+                <button type="button" data-theme-set="system"><i class="bi bi-display"></i>ตามระบบ</button>
+            </div>
+            <p class="small-note mt-2 mb-0">บันทึกไว้ในเบราว์เซอร์นี้ทันทีที่เลือก</p>
+        </section>
+
+        <div class="save-bar">
+            <a href="{% url 'community:profile' user.pk %}" class="btn-ghost">ยกเลิก</a>
+            <button type="submit" class="btn-solid" id="saveBtn">บันทึกการเปลี่ยนแปลง</button>
+        </div>
     </form>
+</div>
+{{ archetypes_map|json_script:"archetypes-data" }}
+{% endblock %}
 
-    {{ archetypes_map|json_script:"archetypes-data" }}
-    {{ profile.bio|json_script:"bio-data" }}
-    <script>
-        const archetypesData = JSON.parse(document.getElementById('archetypes-data').textContent);
+{% block extra_js %}
+<script>
+    (function () {
+        var data = JSON.parse(document.getElementById("archetypes-data").textContent);
+        var input = document.getElementById("selectedArchetypeInput");
+        var bio = document.getElementById("bioInput");
+        var count = document.getElementById("bioCount");
+        var info = document.getElementById("selectedArchetypeInfo");
+        var avatar = document.getElementById("avatarPreview");
 
-        // Default bio text (initial value)
-        const defaultBio = JSON.parse(document.getElementById('bio-data').textContent);
-
-        function selectArchetype(key, name, traits, story) {
-            console.log('Selecting archetype:', key, name);
-
-            // Remove active class from all
-            document.querySelectorAll('.archetype-card').forEach(el => {
-                el.classList.remove('active');
-            });
-
-            // Add active class to clicked
-            const card = document.querySelector(`.archetype-card[data-key="${key}"]`);
-            if (card) {
-                card.classList.add('active');
-
-                // Update hidden input
-                document.getElementById('selectedArchetypeInput').value = key;
-
-                // Show archetype info
-                const infoDiv = document.getElementById('selectedArchetypeInfo');
-                const nameDiv = document.getElementById('selectedArchetypeName');
-                const traitsDiv = document.getElementById('selectedArchetypeTraits');
-                const storyDiv = document.getElementById('selectedArchetypeStory');
-
-                nameDiv.textContent = name;
-                traitsDiv.textContent = traits;
-                storyDiv.textContent = story;
-
-                infoDiv.classList.add('show');
-
-                // Update bio preview and hidden input based on archetype
-                updateBioForArchetype(key);
-            }
+        function bioFor(a) {
+            var traits = a.traits.split(/[\n,]/).map(function (t) { return t.trim(); }).filter(Boolean).slice(0, 3);
+            var text = a.name + "\n\nลักษณะเด่น:\n" + traits.map(function (t) { return "- " + t; }).join("\n") +
+                "\n\nพร้อมให้กำลังใจและสร้างแรงบันดาลใจให้กับทุกคนในชุมชน";
+            return text.slice(0, 300);
+        }
+        function updateCount() { count.textContent = bio.value.length; }
+        function showInfo(key) {
+            var a = data[key];
+            info.hidden = !a;
+            if (!a) return;
+            document.getElementById("selectedArchetypeName").textContent = a.name;
+            document.getElementById("selectedArchetypeTraits").textContent = a.traits;
+            document.getElementById("selectedArchetypeStory").textContent = a.story;
         }
 
-        function updateBioForArchetype(archetypeKey) {
-            console.log('Updating bio for archetype:', archetypeKey);
-
-            const archetype = archetypesData[archetypeKey];
-            if (!archetype) {
-                console.error('Archetype not found:', archetypeKey);
-                return;
-            }
-
-            // Create new bio based on archetype traits
-            const newBio = generateBioFromArchetype(archetype);
-            const bioPreview = document.getElementById('bioPreview');
-            const bioInput = document.getElementById('bioInput');
-
-            if (bioPreview && bioInput) {
-                bioPreview.innerHTML = newBio.replace(/\n/g, '<br>');
-                bioInput.value = newBio;
-                console.log('Bio updated:', newBio);
-            }
-        }
-
-        function generateBioFromArchetype(archetype) {
-            const traits = archetype.traits.split('\n').filter(t => t.trim()).slice(0, 3);
-            const name = archetype.name;
-
-            let bio = `${name}\n\n`;
-            bio += "ลักษณะเด่น:\n";
-            traits.forEach(trait => {
-                bio += `• ${trait.trim()}\n`;
-            });
-
-            bio += "\nพร้อมให้กำลังใจและสร้างแรงบันดาลใจให้กับทุกคนในชุมชน!";
-
-            return bio;
-        }
-
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function () {
-            console.log('Page loaded, initial archetype:', '{{ profile.archetype|escapejs }}');
-
-            // If user already has an archetype selected, show its info
-            const currentArchetype = '{{ profile.archetype|escapejs }}';
-            if (currentArchetype && archetypesData[currentArchetype]) {
-                const archetype = archetypesData[currentArchetype];
-                const infoDiv = document.getElementById('selectedArchetypeInfo');
-                const nameDiv = document.getElementById('selectedArchetypeName');
-                const traitsDiv = document.getElementById('selectedArchetypeTraits');
-                const storyDiv = document.getElementById('selectedArchetypeStory');
-
-                nameDiv.textContent = archetype.name;
-                traitsDiv.textContent = archetype.traits;
-                storyDiv.textContent = archetype.story;
-                infoDiv.classList.add('show');
-            }
-
-            // Handle form submission
-            const form = document.getElementById('profileForm');
-            const saveBtn = document.getElementById('saveBtn');
-
-            form.addEventListener('submit', function (e) {
-                console.log('Form submitting...');
-                console.log('Selected archetype:', document.getElementById('selectedArchetypeInput').value);
-                console.log('Bio:', document.getElementById('bioInput').value);
-
-                saveBtn.disabled = true;
-                saveBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> กำลังบันทึก...';
-                saveBtn.classList.add('loading');
-
-                // Allow form to submit normally
-                return true;
-            });
-
-            // Add click handler to all archetype cards to ensure they work
-            document.querySelectorAll('.archetype-card').forEach(card => {
-                card.addEventListener('click', function (e) {
-                    e.stopPropagation();
-                    const key = this.getAttribute('data-key');
-                    const name = this.getAttribute('data-name');
-                    const traits = this.getAttribute('data-traits');
-                    const story = this.getAttribute('data-story');
-
-                    selectArchetype(key, name, traits, story);
+        document.querySelectorAll(".char-card img").forEach(function (img) {
+            img.addEventListener("error", function () { img.src = img.dataset.fallback; }, { once: true });
+        });
+        document.querySelectorAll(".char-card").forEach(function (card) {
+            card.addEventListener("click", function () {
+                document.querySelectorAll(".char-card").forEach(function (c) {
+                    var on = c === card;
+                    c.classList.toggle("active", on);
+                    c.setAttribute("aria-checked", on ? "true" : "false");
                 });
+                var key = card.dataset.key;
+                input.value = key;
+                showInfo(key);
+                var img = card.querySelector("img");
+                if (img) avatar.src = img.src;
+                if (key && data[key] && !bio.value.trim()) { bio.value = bioFor(data[key]); updateCount(); }
             });
+        });
+        document.getElementById("bioFromCharacter").addEventListener("click", function () {
+            var a = data[input.value];
+            if (!a) { window.AGG.toast("เลือกตัวละครก่อน"); return; }
+            bio.value = bioFor(a);
+            updateCount();
+        });
+        bio.addEventListener("input", updateCount);
+        updateCount();
+        showInfo(input.value);
 
-            // Close archetype info when clicking outside
-            document.addEventListener('click', function (e) {
-                const infoDiv = document.getElementById('selectedArchetypeInfo');
-                const isArchetypeCard = e.target.closest('.archetype-card');
-
-                if (!isArchetypeCard && infoDiv && infoDiv.classList.contains('show')) {
-                    // Don't hide if clicking on the info itself
-                    if (!e.target.closest('#selectedArchetypeInfo')) {
-                        infoDiv.classList.remove('show');
-                    }
-                }
+        // highlight the section in view
+        var links = document.querySelectorAll('.settings-nav a[href^="#"]');
+        links.forEach(function (link) {
+            link.addEventListener("click", function () {
+                links.forEach(function (l) { l.classList.toggle("active", l === link); });
             });
-
-            // Add animation to active card on load
-            const activeCard = document.querySelector('.archetype-card.active');
-            if (activeCard) {
-                setTimeout(() => {
-                    activeCard.style.transform = 'scale(1.02)';
-                    setTimeout(() => {
-                        activeCard.style.transform = '';
-                    }, 300);
-                }, 500);
-            }
         });
-
-        // Handle Escape key to close archetype info
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') {
-                const infoDiv = document.getElementById('selectedArchetypeInfo');
-                if (infoDiv) {
-                    infoDiv.classList.remove('show');
-                }
-            }
+        document.getElementById("profileForm").addEventListener("submit", function () {
+            var btn = document.getElementById("saveBtn");
+            btn.disabled = true;
+            btn.textContent = "กำลังบันทึก...";
         });
-    </script>
-
-</body>
-
-</html>
+    })();
+</script>
+{% endblock %}

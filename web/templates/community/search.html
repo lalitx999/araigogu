@@ -1,112 +1,50 @@
-{% load static humanize ryu %}<!DOCTYPE html>
-<html lang="th">
+{% extends "community/_base.html" %}
+{% load humanize ryu %}
+{% block title %}สำรวจชุมชน{% endblock %}
+{% block page_title %}สำรวจ{% endblock %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token }}">
-    <title>ค้นหา | Ryu Community</title>
-    <link rel="icon" href="{% static 'img/ryupro.ico' %}">
+{% block feed %}
+<form action="{% url 'community:search' %}" method="GET" class="input-wrap search-big" role="search">
+    <i class="bi bi-search"></i>
+    <input type="search" name="q" placeholder="ค้นหาเพื่อนด้วยชื่อหรืออีเมล" value="{{ query }}" aria-label="ค้นหาเพื่อน" autofocus>
+</form>
 
-    <!-- Bootstrap 5 + Icons + fonts: all served locally (no CDN) -->
-    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
-    <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
-    <link rel="stylesheet" href="{% static 'css/pages/search.css' %}">
-</head>
+{% if query %}
+<div class="section-title"><span>{% if users %}ผลการค้นหา{% else %}ไม่พบผู้ใช้ที่ตรงกับ "{{ query }}"{% endif %}</span></div>
+{% if users %}
+<div class="panel">
+    {% for u in users %}
+    <a href="{% url 'community:profile' u.id %}" class="row-link">
+        <img src="{{ u.avatar_url }}" class="avatar avatar-md" alt="">
+        <span class="row-main"><span class="row-title d-block">{{ u.full_name }}</span><span class="row-sub">@{{ u.full_name|handle }}</span></span>
+        <i class="bi bi-chevron-right muted"></i>
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+{% endif %}
 
-<body>
-    <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="d-none">
-        <div class="spinner"></div>
+<div class="section-title"><span>เทรนด์สำหรับคุณ</span></div>
+<div class="panel">
+    {% for trend in trends %}
+    <div class="row-link">
+        <span class="trend-rank">{{ forloop.counter }}</span>
+        <span class="row-main"><span class="row-sub d-block">ตัวละครยอดนิยม</span><span class="row-title d-block">{{ trend.name }}</span></span>
+        <span class="small-note">{{ trend.count|intcomma }} โพสต์</span>
     </div>
+    {% endfor %}
+</div>
 
-    <div class="search-container">
-        <!-- Search Bar -->
-        <div class="search-bar-wrap">
-            <form action="{% url 'community:search' %}" method="GET">
-                <div class="search-input-group">
-                    <i class="bi bi-search text-muted"></i>
-                    <input type="text" name="q" placeholder="ค้นหาเพื่อนหรือเรื่องราว..."
-                        value="{{ query }}">
-                </div>
-            </form>
-        </div>
-
-        {% if users %}
-        <div class="section-title">ผลการค้นหา</div>
-        {% for u in users %}
-        <a href="{% url 'community:profile' u.id %}"
-            class="user-suggest-card text-decoration-none text-dark">
-            <img src="{{ u.avatar_url }}" class="user-avatar" alt="User">
-            <div class="flex-grow-1">
-                <div class="fw-700">
-                    {{ u.full_name }}
-                </div>
-                <div class="text-muted small">@
-                    {{ u.full_name|handle }}
-                </div>
-            </div>
-            <button class="btn btn-dark btn-sm rounded-pill px-3">Follow</button>
-        </a>
-        {% endfor %}
-        {% endif %}
-
-        <!-- Trends -->
-        <div class="section-title">เทรนด์สำหรับคุณ</div>
-        {% for trend in trends %}
-        <a href="#" class="trend-item">
-            <div class="trend-category">Trending in Archetypes</div>
-            <div class="trend-title">#
-                {{ trend.name }}
-            </div>
-            <div class="x-small text-muted">
-                {{ trend.count|intcomma }} Posts
-            </div>
-        </a>
-        {% endfor %}
-
-        <!-- Suggestions -->
-        <div class="section-title">ใครที่ควรติดตาม</div>
-        {% for sug in suggestions %}
-        <div class="user-suggest-card">
-            <img src="{{ sug.avatar_url }}" class="user-avatar" alt="User">
-            <div class="flex-grow-1">
-                <div class="fw-700">
-                    {{ sug.full_name }}
-                </div>
-                <div class="text-muted small">@
-                    {{ sug.full_name|handle }}
-                </div>
-            </div>
-            <button class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-700">Follow</button>
-        </div>
-        {% endfor %}
-    </div>
-
-    <!-- Bottom Nav -->
-    <nav class="bottom-nav">
-        <a href="{% url 'community:feed' %}" class="nav-item">
-            <i class="bi bi-house-door fs-4"></i>
-            <span class="nav-label">Home</span>
-        </a>
-        <a href="{% url 'community:search' %}" class="nav-item active">
-            <i class="bi bi-search fs-4"></i>
-            <span class="nav-label">Explore</span>
-        </a>
-        <a href="{% url 'community:profile' user.pk %}" class="nav-item">
-            <i class="bi bi-person fs-4"></i>
-            <span class="nav-label">Profile</span>
-        </a>
-    </nav>
-
-    <script>
-        function showLoading(show) {
-            const overlay = document.getElementById('loadingOverlay');
-            overlay.classList.toggle('d-none', !show);
-            overlay.classList.toggle('d-flex', show);
-        }
-    </script>
-</body>
-
-</html>
+<div class="section-title"><span>ใครที่ควรติดตาม</span></div>
+<div class="panel">
+    {% for sug in suggestions %}
+    <a href="{% url 'community:profile' sug.id %}" class="row-link">
+        <img src="{{ sug.avatar_url }}" class="avatar avatar-md" alt="">
+        <span class="row-main"><span class="row-title d-block">{{ sug.full_name }}</span><span class="row-sub">@{{ sug.full_name|handle }}</span></span>
+        <span class="btn-ghost btn-sm-pill">ดูโปรไฟล์</span>
+    </a>
+    {% empty %}
+    <div class="empty py-4">ยังไม่มีสมาชิกคนอื่น</div>
+    {% endfor %}
+</div>
+{% endblock %}

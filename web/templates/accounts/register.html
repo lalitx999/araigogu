@@ -1,441 +1,118 @@
-{% load static humanize %}<!DOCTYPE html>
-<html lang="th
+{% extends "accounts/auth_base.html" %}
+{% block title %}สมัครสมาชิก | ARAI GO GU{% endblock %}
+{% block wrap_class %} has-aside{% endblock %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token }}">
-    <title>สมัครสมาชิก - Arai Go GU</title>
-    <link rel="icon" href="{% static 'img/ryupro.ico' %}">
+{% block aside %}
+<div class="auth-aside">
+    <h2>เรียนภาษากับพี่ริว<br><span>ได้ลึกกว่าเดิม</span></h2>
+    <p>สมัครฟรี ไม่มีค่าใช้จ่าย ใช้เวลาไม่ถึงหนึ่งนาที</p>
+    <ul class="perk-list">
+        <li><i class="bi bi-arrow-repeat"></i><div><strong>เก็บบทสนทนาที่ทดลองไว้</strong><span>แชทที่คุยก่อนสมัครจะย้ายเข้าบัญชีให้อัตโนมัติ</span></div></li>
+        <li><i class="bi bi-clock-history"></i><div><strong>บันทึกประวัติแชท</strong><span>กลับมาเรียนต่อได้ทุกเครื่อง แยกหัวข้อได้ไม่จำกัด</span></div></li>
+        <li><i class="bi bi-image"></i><div><strong>ส่งรูปการบ้านให้ช่วยตรวจ</strong><span>ถ่ายหน้าหนังสือหรือแบบฝึกหัด พี่ริวช่วยแปลและอธิบาย</span></div></li>
+        <li><i class="bi bi-chat-dots"></i><div><strong>คุยได้ {{ member_limit|default:'100' }} ข้อความต่อวัน</strong><span>พร้อมโหมดเจาะลึกสำหรับวิเคราะห์ไวยากรณ์</span></div></li>
+    </ul>
+</div>
+{% endblock %}
 
-    <!-- Bootstrap 5 + Icons + fonts: all served locally (no CDN) -->
-    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
-    <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
-    <link rel="stylesheet" href="{% static 'css/pages/register.css' %}">
-</head>
+{% block content %}
+<h1>สร้างบัญชี</h1>
+<p class="auth-sub">เริ่มเรียนกับ AI ติวเตอร์ส่วนตัวของคุณ</p>
 
-<body>
-    <!-- Theme Toggle -->
-    <button class="theme-toggle" onclick="toggleTheme()">
-        <i class="bi bi-moon"></i>
-    </button>
+{% if form.errors %}
+<div class="notice notice-error" role="alert"><i class="bi bi-exclamation-circle"></i><span>มีข้อผิดพลาดในการกรอกข้อมูล โปรดตรวจสอบอีกครั้ง</span></div>
+{% endif %}
 
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-logo">
-            <div class="logo-icon">
-                <i class="bi bi-translate"></i>
-            </div>
-            <span class="logo-text">Arai Go GU</span>
+<form action="{% url 'accounts:register' %}" method="POST" id="registerForm">
+    {% csrf_token %}
+    <div class="field">
+        <label class="field-label" for="name">ชื่อที่ใช้แสดง</label>
+        <div class="input-wrap">
+            <i class="bi bi-person"></i>
+            <input type="text" id="name" name="full_name" class="{% if form.full_name.errors %}is-invalid{% endif %}"
+                   placeholder="ชื่อหรือชื่อเล่น" autocomplete="name" required value="{{ form.full_name.value|default:'' }}">
         </div>
-        <ul class="sidebar-menu">
-            <li class="menu-item">
-                <a href="{% url 'home' %}" class="menu-link">
-                    <i class="bi bi-house"></i>
-                    <span class="menu-text">หน้าหลัก</span>
-                </a>
-            </li>
-            <li class="menu-item">
-                <a href="{% url 'accounts:login' %}" class="menu-link">
-                    <i class="bi bi-box-arrow-in-right"></i>
-                    <span class="menu-text">เข้าสู่ระบบ</span>
-                </a>
-            </li>
-            <li class="menu-item">
-                <a href="{% url 'accounts:register' %}" class="menu-link active">
-                    <i class="bi bi-person-plus"></i>
-                    <span class="menu-text">สมัครสมาชิก</span>
-                </a>
-            </li>
-        </ul>
-    </aside>
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-    <!-- Main Content -->
-    <div class="main-wrapper">
-        <!-- Navbar -->
-        <nav class="navbar">
-            <button class="sidebar-toggle" id="sidebarToggle">
-                <i class="bi bi-list"></i>
-            </button>
-            <div class="navbar-title">สมัครสมาชิก</div>
-        </nav>
-
-        <!-- Content -->
-        <main class="content">
-            <div class="register-card animate-fade-in">
-                <!-- Header -->
-                <div class="register-header">
-                    <h1 class="register-title">สร้างบัญชีผู้ใช้</h1>
-                    <p class="register-subtitle">เริ่มต้นการเรียนรู้ภาษากับ AI Tutor ของเรา</p>
-                </div>
-
-                <!-- Benefits -->
-                <div class="benefits-list">
-                    <div class="benefit-item">
-                        <i class="bi bi-check-circle-fill"></i>
-                        <span>เข้าถึง 120+ ภาษา</span>
-                    </div>
-                    <div class="benefit-item">
-                        <i class="bi bi-check-circle-fill"></i>
-                        <span>แชทกับ AI Tutor ตลอด 24 ชม.</span>
-                    </div>
-                    <div class="benefit-item">
-                        <i class="bi bi-check-circle-fill"></i>
-                        <span>ฟรี 7 วันแรก</span>
-                    </div>
-                </div>
-
-                {% if form.errors %}
-                <div class="alert alert-danger" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                    มีข้อผิดพลาดในการกรอกข้อมูล โปรดตรวจสอบอีกครั้ง
-                </div>
-                {% endif %}
-
-                <!-- Register Form -->
-                <form action="{% url 'accounts:register' %}" method="POST" id="registerForm">
-                    {% csrf_token %}
-                    <!-- Full Name -->
-                    <div class="form-group">
-                        <label class="form-label" for="name">ชื่อ-นามสกุล / ชื่อเล่น</label>
-                        <input type="text" id="name" name="full_name"
-                            class="form-control {% if form.full_name.errors %}is-invalid{% endif %}"
-                            placeholder="กรอกชื่อของคุณ" required
-                            value="{{ form.full_name.value|default:'' }}">
-                        {% if form.full_name.errors %}
-                        <div class="invalid-feedback">
-                            <i class="bi bi-exclamation-circle me-1"></i>
-                            {{ form.full_name.errors.0 }}
-                        </div>
-                        {% endif %}
-                    </div>
-
-                    <!-- Email -->
-                    <div class="form-group">
-                        <label class="form-label" for="email">อีเมล</label>
-                        <input type="email" id="email" name="email"
-                            class="form-control {% if form.email.errors %}is-invalid{% endif %}"
-                            placeholder="example@email.com" required
-                            value="{{ form.email.value|default:'' }}">
-                        {% if form.email.errors %}
-                        <div class="invalid-feedback">
-                            <i class="bi bi-exclamation-circle me-1"></i>
-                            {{ form.email.errors.0 }}
-                        </div>
-                        {% endif %}
-                    </div>
-
-                    <!-- Password -->
-                    <div class="form-group">
-                        <label class="form-label" for="password">รหัสผ่าน</label>
-                        <div class="position-relative">
-                            <input type="password" id="password" name="password1"
-                                class="form-control password-input {% if form.password1.errors %}is-invalid{% endif %}"
-                                placeholder="สร้างรหัสผ่านที่ปลอดภัย" required>
-                            <button type="button" class="password-toggle" onclick="togglePassword('password')">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                        </div>
-
-                        <!-- Password Strength Indicator -->
-                        <div class="password-strength" id="passwordStrength">
-                            <div class="strength-meter">
-                                <div class="strength-meter-fill"></div>
-                            </div>
-                            <div class="strength-text" id="strengthText">ความแข็งแรงของรหัสผ่าน</div>
-                        </div>
-
-                        {% if form.password1.errors %}
-                        <div class="invalid-feedback">
-                            <i class="bi bi-exclamation-circle me-1"></i>
-                            {{ form.password1.errors.0 }}
-                        </div>
-                        {% endif %}
-                    </div>
-
-                    <!-- Confirm Password -->
-                    <div class="form-group">
-                        <label class="form-label" for="confirm_password">ยืนยันรหัสผ่าน</label>
-                        <div class="position-relative">
-                            <input type="password" id="confirm_password" name="password2"
-                                class="form-control password-input {% if form.password2.errors %}is-invalid{% endif %}"
-                                placeholder="กรอกรหัสผ่านอีกครั้ง" required>
-                            <button type="button" class="password-toggle" onclick="togglePassword('confirm_password')">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                        </div>
-                        {% if form.password2.errors %}
-                        <div class="invalid-feedback">
-                            <i class="bi bi-exclamation-circle me-1"></i>
-                            {{ form.password2.errors.0 }}
-                        </div>
-                        {% endif %}
-                    </div>
-
-                    <!-- Terms and Conditions -->
-                    <div class="terms-box">
-                        <p class="fw-bold mb-2">
-                            <i class="bi bi-info-circle-fill me-1"></i>
-                            ข้อตกลงการใช้งานและนโยบายความเป็นส่วนตัว (Version 2.0)
-                        </p>
-                        <p>ระบบนี้เป็น AI บอทสอนภาษาต่างประเทศ ผู้ใช้สามารถสนทนาและเรียนรู้ผ่านการแชทกับ AI ได้</p>
-                        <p>เพื่อให้บริการเป็นไปอย่างเหมาะสม ระบบจะมีการ
-                            <strong>จัดเก็บประวัติการสนทนาและข้อมูลการใช้งาน</strong> เช่น ข้อความที่คุยกับ AI
-                            และประวัติการเรียนรู้
-                        </p>
-                        <p>ข้อมูลเหล่านี้จะถูกใช้เพื่อ:</p>
-                        <ul>
-                            <li>การเรียนการสอน</li>
-                            <li>การพัฒนาและปรับปรุงระบบ AI</li>
-                            <li>การดูแลคุณภาพโดยผู้ดูแลระบบ (Admin)</li>
-                        </ul>
-                        <p>ผู้ดูแลระบบสามารถเข้าดูประวัติการสนทนาได้ <strong>เฉพาะเพื่อวัตถุประสงค์ข้างต้น</strong>
-                            และจะไม่เปิดเผยข้อมูลให้บุคคลภายนอกโดยไม่ได้รับอนุญาต</p>
-                        <p>ผู้ใช้ควรหลีกเลี่ยงการส่งข้อมูลส่วนตัวหรือข้อมูลสำคัญผ่านการสนทนากับ AI</p>
-                        <p><strong>เมื่อผู้ใช้สมัครหรือใช้งานระบบต่อ</strong> ถือว่าผู้ใช้รับทราบและยอมรับข้อตกลงฉบับนี้
-                        </p>
-                    </div>
-
-                    <!-- Accept Terms -->
-                    <div class="form-check">
-                        <input class="form-check-input {% if form.accept_terms.errors %}is-invalid{% endif %}"
-                            type="checkbox" name="accept_terms" id="accept_terms" required>
-                        <label class="form-check-label" for="accept_terms">
-                            ฉันยอมรับข้อตกลงการใช้งานและนโยบายความเป็นส่วนตัว
-                        </label>
-                    </div>
-                    {% if form.accept_terms.errors %}
-                    <div class="invalid-feedback">
-                        <i class="bi bi-exclamation-circle me-1"></i>
-                        {{ form.accept_terms.errors.0 }}
-                    </div>
-                    {% endif %}
-
-                    <!-- Submit Button -->
-                    <button type="submit" class="btn-register" id="registerButton">
-                        สร้างบัญชีผู้ใช้
-                    </button>
-                </form>
-
-                <!-- Links -->
-                <div class="register-links">
-                    <p class="text-muted small mb-3">
-                        มีบัญชีอยู่แล้ว?
-                        <a href="{% url 'accounts:login' %}" class="register-link">
-                            เข้าสู่ระบบที่นี่
-                        </a>
-                    </p>
-                    <a href="{% url 'home' %}" class="register-link">
-                        <i class="bi bi-arrow-left"></i>
-                        กลับหน้าหลัก
-                    </a>
-                </div>
-            </div>
-        </main>
+        {% if form.full_name.errors %}<div class="field-error"><i class="bi bi-exclamation-circle"></i>{{ form.full_name.errors.0 }}</div>{% endif %}
+    </div>
+    <div class="field">
+        <label class="field-label" for="email">อีเมล</label>
+        <div class="input-wrap">
+            <i class="bi bi-envelope"></i>
+            <input type="email" id="email" name="email" class="{% if form.email.errors %}is-invalid{% endif %}"
+                   placeholder="you@example.com" autocomplete="email" required value="{{ form.email.value|default:'' }}">
+        </div>
+        {% if form.email.errors %}<div class="field-error"><i class="bi bi-exclamation-circle"></i>{{ form.email.errors.0 }}</div>{% endif %}
+    </div>
+    <div class="field">
+        <label class="field-label" for="password">รหัสผ่าน</label>
+        <div class="input-wrap">
+            <i class="bi bi-lock"></i>
+            <input type="password" id="password" name="password1" class="{% if form.password1.errors %}is-invalid{% endif %}"
+                   placeholder="อย่างน้อย 8 ตัวอักษร" autocomplete="new-password" required>
+            <button type="button" class="icon-btn icon-sm reveal-btn" data-reveal="password" aria-label="แสดงรหัสผ่าน"><i class="bi bi-eye"></i></button>
+        </div>
+        <div class="strength" id="strength" data-level="0" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <div class="strength-text" id="strengthText">ความแข็งแรงของรหัสผ่าน</div>
+        {% if form.password1.errors %}<div class="field-error"><i class="bi bi-exclamation-circle"></i>{{ form.password1.errors.0 }}</div>{% endif %}
+    </div>
+    <div class="field">
+        <label class="field-label" for="confirm_password">ยืนยันรหัสผ่าน</label>
+        <div class="input-wrap">
+            <i class="bi bi-lock"></i>
+            <input type="password" id="confirm_password" name="password2" class="{% if form.password2.errors %}is-invalid{% endif %}"
+                   placeholder="กรอกรหัสผ่านอีกครั้ง" autocomplete="new-password" required>
+            <button type="button" class="icon-btn icon-sm reveal-btn" data-reveal="confirm_password" aria-label="แสดงรหัสผ่าน"><i class="bi bi-eye"></i></button>
+        </div>
+        {% if form.password2.errors %}<div class="field-error"><i class="bi bi-exclamation-circle"></i>{{ form.password2.errors.0 }}</div>{% endif %}
     </div>
 
-    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-    <script>
-        // Sidebar Toggle
-        const sidebar = document.getElementById('sidebar');
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
+    <details class="terms">
+        <summary><i class="bi bi-file-text"></i>ข้อตกลงการใช้งานและนโยบายความเป็นส่วนตัว (Version 2.0)<i class="bi bi-chevron-down"></i></summary>
+        <div class="terms-body">
+            <p>ระบบนี้เป็น AI บอทสอนภาษาต่างประเทศ ผู้ใช้สามารถสนทนาและเรียนรู้ผ่านการแชทกับ AI ได้</p>
+            <p>เพื่อให้บริการเป็นไปอย่างเหมาะสม ระบบจะมีการ <strong>จัดเก็บประวัติการสนทนาและข้อมูลการใช้งาน</strong> เช่น ข้อความที่คุยกับ AI และประวัติการเรียนรู้</p>
+            <p>ข้อมูลเหล่านี้จะถูกใช้เพื่อ:</p>
+            <ul>
+                <li>การเรียนการสอน</li>
+                <li>การพัฒนาและปรับปรุงระบบ AI</li>
+                <li>การดูแลคุณภาพโดยผู้ดูแลระบบ (Admin)</li>
+            </ul>
+            <p>ผู้ดูแลระบบสามารถเข้าดูประวัติการสนทนาได้ <strong>เฉพาะเพื่อวัตถุประสงค์ข้างต้น</strong> และจะไม่เปิดเผยข้อมูลให้บุคคลภายนอกโดยไม่ได้รับอนุญาต</p>
+            <p>ผู้ใช้ควรหลีกเลี่ยงการส่งข้อมูลส่วนตัวหรือข้อมูลสำคัญผ่านการสนทนากับ AI</p>
+            <p><strong>เมื่อผู้ใช้สมัครหรือใช้งานระบบต่อ</strong> ถือว่าผู้ใช้รับทราบและยอมรับข้อตกลงฉบับนี้</p>
+        </div>
+    </details>
+    <label class="check mb-1" for="accept_terms">
+        <input type="checkbox" name="accept_terms" id="accept_terms" class="{% if form.accept_terms.errors %}is-invalid{% endif %}" required>
+        <span>ฉันยอมรับข้อตกลงการใช้งานและนโยบายความเป็นส่วนตัว</span>
+    </label>
+    {% if form.accept_terms.errors %}<div class="field-error mb-2"><i class="bi bi-exclamation-circle"></i>{{ form.accept_terms.errors.0 }}</div>{% endif %}
 
-        sidebarToggle.addEventListener('click', () => {
-            if (window.innerWidth <= 991) {
-                sidebar.classList.toggle('show');
-                sidebarOverlay.classList.toggle('show');
-            } else {
-                sidebar.classList.toggle('collapsed');
-            }
+    <button type="submit" class="btn-solid btn-lg-pill w-100 mt-3" id="registerButton">สร้างบัญชี</button>
+</form>
+
+<p class="auth-foot">มีบัญชีอยู่แล้ว <a href="{% url 'accounts:login' %}">เข้าสู่ระบบ</a></p>
+<p class="auth-foot mt-2"><a href="{% url 'home' %}" class="fw-normal muted"><i class="bi bi-arrow-left"></i> กลับไปแชทกับพี่ริว</a></p>
+{% endblock %}
+
+{% block extra_js %}
+{% include "accounts/_reveal_js.html" %}
+<script>
+    (function () {
+        var input = document.getElementById("password");
+        var meter = document.getElementById("strength");
+        var text = document.getElementById("strengthText");
+        var labels = ["ความแข็งแรงของรหัสผ่าน", "อ่อน", "พอใช้", "ดี", "แข็งแรงมาก"];
+        input.addEventListener("input", function () {
+            var v = input.value, score = 0;
+            if (v.length >= 8) score++;
+            if (/[A-Z]/.test(v) && /[a-z]/.test(v)) score++;
+            if (/\d/.test(v)) score++;
+            if (/[^A-Za-z0-9]/.test(v) || v.length >= 12) score++;
+            if (!v) score = 0;
+            meter.dataset.level = score;
+            text.textContent = labels[score];
         });
-
-        sidebarOverlay.addEventListener('click', () => {
-            sidebar.classList.remove('show');
-            sidebarOverlay.classList.remove('show');
-        });
-
-        // Theme Toggle
-        function toggleTheme() {
-            const html = document.documentElement;
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            const themeToggle = document.querySelector('.theme-toggle i');
-
-            html.setAttribute('data-theme', newTheme);
-            themeToggle.className = newTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon';
-
-            // Save theme preference
-            localStorage.setItem('theme', newTheme);
-        }
-
-        // Load saved theme
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        document.querySelector('.theme-toggle i').className = savedTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon';
-
-        // Password Toggle
-        function togglePassword(fieldId) {
-            const passwordInput = document.getElementById(fieldId);
-            const toggleButton = passwordInput.parentElement.querySelector('.password-toggle i');
-
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                toggleButton.className = 'bi bi-eye-slash';
-            } else {
-                passwordInput.type = 'password';
-                toggleButton.className = 'bi bi-eye';
-            }
-        }
-
-        // Password Strength Checker
-        const passwordInput = document.getElementById('password');
-        const passwordStrength = document.getElementById('passwordStrength');
-        const strengthText = document.getElementById('strengthText');
-
-        passwordInput.addEventListener('input', function () {
-            const password = this.value;
-            let strength = 0;
-
-            // Length check
-            if (password.length >= 8) strength++;
-            if (password.length >= 12) strength++;
-
-            // Complexity checks
-            if (/[a-z]/.test(password)) strength++;
-            if (/[A-Z]/.test(password)) strength++;
-            if (/[0-9]/.test(password)) strength++;
-            if (/[^A-Za-z0-9]/.test(password)) strength++;
-
-            // Update UI
-            passwordStrength.className = 'password-strength';
-
-            if (password.length === 0) {
-                passwordStrength.classList.remove('strength-weak', 'strength-fair', 'strength-good', 'strength-strong');
-                strengthText.textContent = 'ความแข็งแรงของรหัสผ่าน';
-                return;
-            }
-
-            if (strength <= 2) {
-                passwordStrength.classList.add('strength-weak');
-                strengthText.textContent = 'รหัสผ่านอ่อน';
-                strengthText.style.color = '#ef4444';
-            } else if (strength <= 4) {
-                passwordStrength.classList.add('strength-fair');
-                strengthText.textContent = 'รหัสผ่านปานกลาง';
-                strengthText.style.color = '#f59e0b';
-            } else if (strength <= 6) {
-                passwordStrength.classList.add('strength-good');
-                strengthText.textContent = 'รหัสผ่านดี';
-                strengthText.style.color = '#3b82f6';
-            } else {
-                passwordStrength.classList.add('strength-strong');
-                strengthText.textContent = 'รหัสผ่านแข็งแรงมาก';
-                strengthText.style.color = '#22c55e';
-            }
-        });
-
-        // Form Validation
-        document.getElementById('registerForm').addEventListener('submit', function (e) {
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirm_password').value;
-            const acceptTerms = document.getElementById('accept_terms').checked;
-            const registerButton = document.getElementById('registerButton');
-
-            // Simple validation
-            if (!name || !email || !password || !confirmPassword || !acceptTerms) {
-                e.preventDefault();
-                showAlert('กรุณากรอกข้อมูลให้ครบถ้วนและยอมรับข้อตกลง', 'danger');
-                return;
-            }
-
-            // Email validation
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                e.preventDefault();
-                showAlert('กรุณากรอกอีเมลให้ถูกต้อง', 'danger');
-                return;
-            }
-
-            // Password validation
-            if (password.length < 8) {
-                e.preventDefault();
-                showAlert('รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร', 'danger');
-                return;
-            }
-
-            // Password match validation
-            if (password !== confirmPassword) {
-                e.preventDefault();
-                showAlert('รหัสผ่านไม่ตรงกัน', 'danger');
-                return;
-            }
-
-            // Show loading state
-            registerButton.classList.add('btn-loading');
-            registerButton.disabled = true;
-            registerButton.innerHTML = '';
-
-            // Simulate API delay
-            setTimeout(() => {
-                registerButton.classList.remove('btn-loading');
-                registerButton.disabled = false;
-                registerButton.innerHTML = 'สร้างบัญชีผู้ใช้';
-            }, 2000);
-        });
-
-        // Alert Function
-        function showAlert(message, type) {
-            const alertDiv = document.createElement('div');
-            alertDiv.className = `alert alert-${type}`;
-            alertDiv.innerHTML = `
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                ${message}
-            `;
-
-            const form = document.getElementById('registerForm');
-            form.parentElement.insertBefore(alertDiv, form);
-
-            setTimeout(() => {
-                alertDiv.style.transition = 'opacity 0.3s';
-                alertDiv.style.opacity = '0';
-                setTimeout(() => alertDiv.remove(), 300);
-            }, 3000);
-        }
-
-        // Auto-focus first field
-        document.addEventListener('DOMContentLoaded', function () {
-            const nameInput = document.getElementById('name');
-            if (nameInput && !nameInput.value) {
-                nameInput.focus();
-            }
-        });
-
-        // Animation on load
-        document.addEventListener('DOMContentLoaded', function () {
-            const registerCard = document.querySelector('.register-card');
-            registerCard.style.opacity = '0';
-            registerCard.style.transform = 'translateY(20px)';
-
-            setTimeout(() => {
-                registerCard.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-                registerCard.style.opacity = '1';
-                registerCard.style.transform = 'translateY(0)';
-            }, 100);
-        });
-
-        // Resize handler
-        window.addEventListener('resize', function () {
-            if (window.innerWidth > 991 && sidebar.classList.contains('show')) {
-                sidebar.classList.remove('show');
-                sidebarOverlay.classList.remove('show');
-            }
-        });
-    </script>
-</body>
-
-</html>
+    })();
+</script>
+{% endblock %}

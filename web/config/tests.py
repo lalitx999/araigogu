@@ -54,7 +54,7 @@ class LocalAssetsTests(TestCase):
         user = User.objects.create_user("a@b.com", "pw-pw-pw-12", full_name="A", archetype="B")
         session = ChatSession.objects.create(user=user, title="t", language="ja", difficulty="n5")
         post = Post.objects.create(author=user, content="hello")
-        public = ["home", "accounts:login", "accounts:register", "accounts:password_reset"]
+        public = ["home", "about", "accounts:login", "accounts:register", "accounts:password_reset"]
         private = [reverse("dashboard"), reverse("chat:index"), reverse("chat:detail", args=[session.pk]),
                    reverse("community:feed"), reverse("community:detail", args=[post.pk]),
                    reverse("community:profile", args=[user.pk]), reverse("community:search") + "?q=a",

@@ -1,223 +1,43 @@
-{% load static humanize %}<!DOCTYPE html>
-<html lang="th
+{% extends "accounts/auth_base.html" %}
+{% block title %}เข้าสู่ระบบ | ARAI GO GU{% endblock %}
+{% block content %}
+<h1>ยินดีต้อนรับกลับ</h1>
+<p class="auth-sub">เข้าสู่ระบบเพื่อเรียนต่อกับพี่ริว ประวัติแชทของคุณรออยู่</p>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token }}">
-    <title>เข้าสู่ระบบ - Arai Go GU</title>
-    <link rel="icon" href="{% static 'img/ryupro.ico' %}">
+{% if form.non_field_errors %}
+<div class="notice notice-error" role="alert"><i class="bi bi-exclamation-circle"></i><span>อีเมลหรือรหัสผ่านไม่ถูกต้อง</span></div>
+{% endif %}
+{% for success in messages %}
+<div class="notice" role="status"><i class="bi bi-check-circle"></i><span>{{ success }}</span></div>
+{% endfor %}
 
-    <!-- Bootstrap 5 + Icons + fonts: all served locally (no CDN) -->
-    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
-    <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
-    <link rel="stylesheet" href="{% static 'css/pages/login.css' %}">
-</head>
-
-<body>
-    <!-- Theme Toggle -->
-    <button class="theme-toggle" onclick="toggleTheme()">
-        <i class="bi bi-moon"></i>
-    </button>
-
-    <!-- Decorative Elements -->
-    <div class="login-decorations">
-        <div class="decoration-circle circle-1"></div>
-        <div class="decoration-circle circle-2"></div>
-    </div>
-
-    <!-- Login Container -->
-    <div class="login-container">
-        <div class="login-card">
-            <!-- Logo -->
-            <div class="login-logo">
-                <a href="{% url 'home' %}">
-                    <div class="logo-icon">
-                        <i class="bi bi-translate"></i>
-                    </div>
-                    <span>Arai Go GU</span>
-                </a>
-            </div>
-
-            <!-- Page Title -->
-            <h1 class="font-kanit fw-bold text-center mb-4" style="font-size: 1.75rem;">
-                เข้าสู่ระบบ
-            </h1>
-            <p class="text-center text-muted mb-4">
-                กรุณาเข้าสู่ระบบเพื่อใช้งานฟีเจอร์ทั้งหมด
-            </p>
-
-            {% if form.non_field_errors %}
-            <div class="alert alert-danger" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                อีเมลหรือรหัสผ่านไม่ถูกต้อง
-            </div>
-            {% endif %}
-
-            {% for success in messages %}
-            <div class="alert alert-success" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i>
-                {{ success }}
-            </div>
-            {% endfor %}
-
-            <!-- Login Form -->
-            <form action="{% url 'accounts:login' %}" method="POST" id="loginForm">
-                <input type="hidden" name="next" value="{{ next }}">
-                {% csrf_token %}
-                <!-- Email -->
-                <div class="form-group">
-                    <label class="form-label" for="email">อีเมล</label>
-                    <div class="input-with-icon">
-                        <i class="bi bi-envelope input-icon"></i>
-                        <input type="email" id="email" name="username" class="form-control" placeholder="กรอกอีเมลของคุณ"
-                            required value="{{ form.username.value|default:'' }}">
-                    </div>
-                </div>
-
-                <!-- Password -->
-                <div class="form-group">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <label class="form-label" for="password">รหัสผ่าน</label>
-                        <a href="{% url 'accounts:password_reset' %}" class="login-link">
-                            ลืมรหัสผ่าน?
-                        </a>
-                    </div>
-                    <div class="input-with-icon">
-                        <i class="bi bi-lock input-icon"></i>
-                        <input type="password" id="password" name="password" class="form-control"
-                            placeholder="กรอกรหัสผ่านของคุณ" required>
-                        <button type="button" class="password-toggle" onclick="togglePassword()">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Remember Me -->
-                <div class="remember-me">
-                    <input type="checkbox" id="remember" name="remember">
-                    <label for="remember">จำการเข้าสู่ระบบ</label>
-                </div>
-
-                <!-- Submit Button -->
-                <button type="submit" class="btn-login" id="loginButton">
-                    เข้าสู่ระบบ
-                </button>
-            </form>
-
-            <!-- Sign Up Link -->
-            <div class="login-links">
-                <a href="{% url 'home' %}" class="login-link">
-                    <i class="bi bi-arrow-left"></i>
-                    กลับหน้าหลัก
-                </a>
-                <a href="{% url 'accounts:register' %}" class="login-link">
-                    สมัครสมาชิก
-                    <i class="bi bi-arrow-right"></i>
-                </a>
-            </div>
+<form action="{% url 'accounts:login' %}" method="POST" id="loginForm">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    <div class="field">
+        <label class="field-label" for="email">อีเมล</label>
+        <div class="input-wrap">
+            <i class="bi bi-envelope"></i>
+            <input type="email" id="email" name="username" placeholder="you@example.com" autocomplete="email" required autofocus
+                   value="{{ form.username.value|default:'' }}">
         </div>
     </div>
+    <div class="field">
+        <label class="field-label" for="password">รหัสผ่าน <a href="{% url 'accounts:password_reset' %}">ลืมรหัสผ่าน</a></label>
+        <div class="input-wrap">
+            <i class="bi bi-lock"></i>
+            <input type="password" id="password" name="password" placeholder="รหัสผ่านของคุณ" autocomplete="current-password" required>
+            <button type="button" class="icon-btn icon-sm reveal-btn" data-reveal="password" aria-label="แสดงรหัสผ่าน"><i class="bi bi-eye"></i></button>
+        </div>
+    </div>
+    <label class="check mb-3" for="remember">
+        <input type="checkbox" id="remember" name="remember">
+        <span>จดจำการเข้าสู่ระบบในเครื่องนี้</span>
+    </label>
+    <button type="submit" class="btn-solid btn-lg-pill w-100" id="loginButton">เข้าสู่ระบบ</button>
+</form>
 
-    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-    <script>
-        // Theme Toggle
-        function toggleTheme() {
-            const html = document.documentElement;
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            const themeToggle = document.querySelector('.theme-toggle i');
-
-            html.setAttribute('data-theme', newTheme);
-            themeToggle.className = newTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon';
-
-            // Save theme preference
-            localStorage.setItem('theme', newTheme);
-        }
-
-        // Load saved theme
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        document.querySelector('.theme-toggle i').className = savedTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon';
-
-        // Password Toggle
-        function togglePassword() {
-            const passwordInput = document.getElementById('password');
-            const toggleButton = document.querySelector('.password-toggle i');
-
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                toggleButton.className = 'bi bi-eye-slash';
-            } else {
-                passwordInput.type = 'password';
-                toggleButton.className = 'bi bi-eye';
-            }
-        }
-
-        // Form Validation
-        document.getElementById('loginForm').addEventListener('submit', function (e) {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const loginButton = document.getElementById('loginButton');
-
-            // Simple validation
-            if (!email || !password) {
-                e.preventDefault();
-                alert('กรุณากรอกข้อมูลให้ครบถ้วน');
-                return;
-            }
-
-            // Email validation
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                e.preventDefault();
-                alert('กรุณากรอกอีเมลให้ถูกต้อง');
-                return;
-            }
-
-            // Show loading state
-            loginButton.classList.add('btn-loading');
-            loginButton.disabled = true;
-
-            // Simulate API delay
-            setTimeout(() => {
-                loginButton.classList.remove('btn-loading');
-                loginButton.disabled = false;
-            }, 2000);
-        });
-
-        // Auto-focus email field
-        document.addEventListener('DOMContentLoaded', function () {
-            const emailInput = document.getElementById('email');
-            if (emailInput && !emailInput.value) {
-                emailInput.focus();
-            }
-        });
-
-        // Enter key support
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter' && !e.target.matches('button, a, input[type="submit"]')) {
-                const submitButton = document.querySelector('button[type="submit"]');
-                if (submitButton) {
-                    submitButton.click();
-                }
-            }
-        });
-
-        // Animation on load
-        document.addEventListener('DOMContentLoaded', function () {
-            const loginCard = document.querySelector('.login-card');
-            loginCard.style.transform = 'translateY(20px)';
-            loginCard.style.opacity = '0';
-
-            setTimeout(() => {
-                loginCard.style.transition = 'transform 0.6s ease, opacity 0.6s ease';
-                loginCard.style.transform = 'translateY(0)';
-                loginCard.style.opacity = '1';
-            }, 100);
-        });
-    </script>
-</body>
-
-</html>
+<p class="auth-foot">ยังไม่มีบัญชี <a href="{% url 'accounts:register' %}">สมัครสมาชิกฟรี</a></p>
+<p class="auth-foot mt-2"><a href="{% url 'home' %}" class="fw-normal muted"><i class="bi bi-arrow-left"></i> กลับไปแชทกับพี่ริว</a></p>
+{% endblock %}
+{% block extra_js %}{% include "accounts/_reveal_js.html" %}{% endblock %}

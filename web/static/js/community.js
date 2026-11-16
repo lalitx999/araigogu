@@ -56,6 +56,52 @@
     });
   }
 
+  // whole card opens the post (links, buttons and forms inside keep their own behaviour)
+  document.addEventListener("click", function (e) {
+    const card = e.target.closest(".post-card[data-href]");
+    if (!card || e.target.closest("a, button, form, textarea, input")) return;
+    if (window.getSelection && String(window.getSelection())) return;  // selecting text, not clicking
+    window.location.href = card.dataset.href;
+  });
+
+  // comment button on a feed card opens the quick reply under it
+  document.addEventListener("click", function (e) {
+    const toggle = e.target.closest("[data-reply-toggle]");
+    if (!toggle) return;
+    const form = document.getElementById("reply-" + toggle.dataset.replyToggle);
+    if (!form) return;
+    e.preventDefault();
+    form.hidden = !form.hidden;
+    if (!form.hidden) form.querySelector("textarea").focus();
+  });
+
+  document.addEventListener("click", function (e) {
+    const btn = e.target.closest("[data-focus]");
+    if (btn) document.querySelector(btn.dataset.focus)?.focus();
+  });
+
+  // textareas grow with their content; Enter sends, Shift+Enter adds a line (not the main post box)
+  document.addEventListener("input", function (e) {
+    const t = e.target.closest(".auto-expand-textarea");
+    if (!t) return;
+    t.style.height = "auto";
+    t.style.height = Math.min(t.scrollHeight, 240) + "px";
+    if (t.id === "postContent") {
+      const c = document.getElementById("postCount");
+      if (c) c.textContent = t.value.length + "/1000";
+    }
+  });
+  document.addEventListener("keydown", function (e) {
+    const t = e.target.closest(".auto-expand-textarea");
+    if (!t || t.id === "postContent" || e.key !== "Enter" || e.shiftKey || e.isComposing) return;
+    e.preventDefault();
+    if (t.value.trim()) t.form.requestSubmit();
+  });
+  document.addEventListener("submit", function (e) {
+    const btn = e.target.querySelector('button[type="submit"]');
+    if (btn && !e.target.matches("[data-ajax-toggle]")) setTimeout(function () { btn.disabled = true; }, 0);
+  });
+
   // P'Ryu's comment is generated after the redirect, so the author never waits for the AI
   const ryuUrl = document.body.dataset.ryuUrl;
   if (ryuUrl) {

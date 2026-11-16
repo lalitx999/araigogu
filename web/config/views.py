@@ -14,4 +14,8 @@ def healthz(request):
 
 def about(request):
     """The old marketing landing page; the site itself now opens on the chat."""
-    return render(request, "home.html", {"total_users": get_user_model().objects.count()})
+    from chat.languages import LANGUAGES
+    return render(request, "home.html", {
+        "total_users": get_user_model().objects.count(),
+        "language_count": len(LANGUAGES),
+    })

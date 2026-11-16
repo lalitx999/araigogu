@@ -1,0 +1,37 @@
+{% extends "app/base.html" %}
+{% load static %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/community.css' %}">{% endblock %}
+
+{% block top_right %}
+<a href="{% url 'community:search' %}" class="icon-btn{% if request.resolver_match.url_name == 'search' %} is-on{% endif %}" title="ค้นหา" aria-label="ค้นหาในชุมชน"><i class="bi bi-search"></i></a>
+<a href="{% url 'community:profile' user.pk %}" class="icon-btn" title="โปรไฟล์ของฉัน" aria-label="โปรไฟล์ของฉัน"><img src="{{ user.avatar_url }}" alt="" class="avatar avatar-sm"></a>
+{% endblock %}
+
+{% block content %}
+<div class="page community">
+    <div class="community-main">{% block feed %}{% endblock %}</div>
+    <aside class="community-rail" aria-label="ชุมชน">
+        <form action="{% url 'community:search' %}" method="GET" class="input-wrap rail-search" role="search">
+            <i class="bi bi-search"></i>
+            <input type="search" name="q" placeholder="ค้นหาเพื่อน" value="{{ query|default:'' }}" aria-label="ค้นหาเพื่อน">
+        </form>
+        <nav class="panel rail-nav" aria-label="เมนูชุมชน">
+            {% with name=request.resolver_match.url_name %}
+            <a href="{% url 'community:feed' %}" class="row-link{% if name == 'feed' %} is-on{% endif %}"><i class="bi bi-house"></i><span class="row-main">ฟีด</span></a>
+            <a href="{% url 'community:search' %}" class="row-link{% if name == 'search' %} is-on{% endif %}"><i class="bi bi-compass"></i><span class="row-main">สำรวจ</span></a>
+            <a href="{% url 'community:profile' user.pk %}" class="row-link{% if name == 'profile' and profile.pk == user.pk %} is-on{% endif %}"><i class="bi bi-person"></i><span class="row-main">โปรไฟล์ของฉัน</span></a>
+            {% endwith %}
+        </nav>
+        <div class="panel panel-pad rail-rules">
+            <div class="fw-semibold mb-2">กติกาชุมชน</div>
+            <ul>
+                <li><i class="bi bi-calendar-check"></i>โพสต์ได้วันละ 1 ครั้ง</li>
+                <li><i class="bi bi-shield-check"></i>พี่ริวช่วยตรวจและเกลาคำที่ไม่สุภาพ</li>
+                <li><i class="bi bi-chat-heart"></i>พี่ริวแวะมาคอมเมนต์ให้กำลังใจทุกโพสต์</li>
+            </ul>
+        </div>
+    </aside>
+</div>
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/community.js' %}"></script>{% endblock %}

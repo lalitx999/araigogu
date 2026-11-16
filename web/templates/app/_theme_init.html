@@ -1,0 +1,9 @@
+<script>
+    /* Apply the saved theme and sidebar state before first paint. Storage can be blocked: ignore errors. */
+    (function () {
+        var t = "system";
+        try { t = localStorage.getItem("agg-theme") || "system"; } catch (e) {}
+        if (t !== "system") document.documentElement.setAttribute("data-theme", t);
+        try { if (localStorage.getItem("agg-side") === "collapsed") document.documentElement.classList.add("side-collapsed"); } catch (e) {}
+    })();
+</script>

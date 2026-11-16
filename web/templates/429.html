@@ -1,7 +1,8 @@
 {% extends "accounts/auth_base.html" %}
-{% block title %}ช้าลงหน่อย - Arai Go GU{% endblock %}
+{% block title %}ช้าลงหน่อย | ARAI GO GU{% endblock %}
 {% block content %}
-<h1 class="font-kanit fw-bold text-center mb-3" style="font-size: 1.5rem;">{{ message }}</h1>
-<p class="text-center text-muted mb-4">ลองใหม่อีกครั้งในภายหลัง</p>
-<div class="login-links"><a href="{% url 'home' %}" class="login-link"><i class="bi bi-arrow-left"></i> กลับหน้าหลัก</a></div>
+<div class="auth-icon"><i class="bi bi-hourglass-split"></i></div>
+<h1>{{ message }}</h1>
+<p class="auth-sub">ลองใหม่อีกครั้งในภายหลัง</p>
+<a href="{% url 'home' %}" class="btn-ghost btn-lg-pill w-100"><i class="bi bi-arrow-left"></i>กลับหน้าหลัก</a>
 {% endblock %}

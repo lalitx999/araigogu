@@ -4,18 +4,16 @@ import json
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import redirect_to_login
-from django.db.models import Count
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
-from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from config.ratelimit import client_ip
 
 from .languages import LANGUAGE_NAMES, LANGUAGES
 from .models import ChatSession
-from .selectors import chat_selector
+from .selectors import chat_selector, progress_selector
 from .services import chat_service, quota_service
 from .signals import IMPORTED_CHAT_KEY
 from .starters import POPULAR_LANGUAGES, TOPICS
@@ -60,7 +58,7 @@ def index(request, pk=None):
         quota = quota_service.guest_quota(client_ip(request), request.session.session_key)
         return render(request, "chat/index.html", _page_context(
             state["language"], state["difficulty"], bool(state["messages"]), state["messages"], quota,
-            is_guest=True, sessions=[], current=None,
+            is_guest=True, current=None,
         ))
 
     if pk is None and (imported := request.session.pop(IMPORTED_CHAT_KEY, None)):
@@ -72,7 +70,7 @@ def index(request, pk=None):
         current is not None,
         chat_selector.session_messages(current) if current else [],
         quota_service.user_quota(request.user),
-        is_guest=False, sessions=chat_selector.sidebar_sessions(request.user), current=current,
+        is_guest=False, current=current,
     ))
 
 
@@ -135,14 +133,15 @@ def guest_reset(request):
 
 @login_required
 def dashboard(request):
-    qs = request.user.chat_sessions.annotate(message_count=Count("messages"))
-    recent = list(qs.order_by("-updated_at")[:6])
-    for i, chat in enumerate(recent):
-        chat.formatted_time = timezone.localtime(chat.updated_at).strftime("%d/%m/%y %H:%M")
-        chat.aos_delay = min(300 + i * 50, 600)
+    """'Progress': learning stats, recent chats, and the detailed new-chat form (title, goal, level)."""
+    user = request.user
     return render(request, "dashboard.html", {
-        "chat_count": request.user.chat_sessions.count(),
-        "recent_chats": recent,
+        "totals": progress_selector.totals(user),
+        "streak": progress_selector.streak(user),
+        "activity": progress_selector.daily_activity(user),
+        "language_stats": progress_selector.language_breakdown(user),
+        "recent_chats": progress_selector.recent_chats(user),
+        "today_quota": quota_service.user_quota(user),
         "languages": LANGUAGES,
     })
 

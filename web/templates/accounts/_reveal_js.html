@@ -1,0 +1,18 @@
+<script>
+    /* Show / hide password fields; disable the submit button while posting. */
+    document.querySelectorAll("[data-reveal]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            var input = document.getElementById(btn.dataset.reveal);
+            var show = input.type === "password";
+            input.type = show ? "text" : "password";
+            btn.querySelector("i").className = show ? "bi bi-eye-slash" : "bi bi-eye";
+            btn.setAttribute("aria-label", show ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน");
+        });
+    });
+    document.querySelectorAll("form").forEach(function (form) {
+        form.addEventListener("submit", function () {
+            var btn = form.querySelector('button[type="submit"]');
+            if (btn && form.checkValidity()) { btn.disabled = true; }
+        });
+    });
+</script>

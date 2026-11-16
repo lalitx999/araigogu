@@ -12,11 +12,12 @@ docker-compose.prod.yml  prod (db + ai-service + web/gunicorn + caddy; DB ไม
 
 ## กฎของโปรเจกต์
 
-- **หน้าตาเหมือนของเดิม**: ทุกหน้า (home, login, register, dashboard, chat, community feed/post/profile/search, edit profile) คัดลอก HTML/CSS/JS จาก
-  `app/Views/*.php` ของโปรเจกต์ PHP เดิมมาตรงๆ แปลงเฉพาะส่วน PHP เป็น Django template (CSS อยู่ที่ `web/static/css/pages/`)
-  จุดที่เปลี่ยนจากของเดิมโดยตั้งใจ: ปิดช่องโหว่ XSS ในแชท/ทักทาย (ของเดิมใส่ข้อความลง `innerHTML`/JS โดยไม่ escape), ปุ่มล้างแชทล้างที่เซิร์ฟเวอร์จริง,
-  ตัวเลข "Trending" ในหน้าค้นหาเป็นจำนวนโพสต์จริง (เดิมสุ่ม), ไม่ใช้รูป/ภาพปกจากเว็บภายนอก (ใช้ไฟล์ในเครื่อง/ไล่สี)
-- **ห้าม CDN**: Bootstrap 5.3.8 (ไฟล์ที่คุณให้), Bootstrap Icons 1.11.1, ฟอนต์ Kanit/Outfit/Inter/Noto Sans Thai, SweetAlert2, AOS และ qrcode-generator
+- **ดีไซน์**: โทนขาว ดำ เทา กระจกฝ้า (โหมดสว่าง/มืด/ตามระบบ) ใช้ไอคอน Bootstrap Icons เท่านั้น ห้ามใช้อิโมจิ
+  - ทุกหน้าที่ต้องล็อกอินอยู่ในกรอบเดียวกับแชท (`templates/app/base.html` + `_sidebar.html`): เมนูซ้ายมีแชทใหม่ ชุมชน ความก้าวหน้า หัวข้อการเรียน ประวัติแชท และโปรไฟล์ด้านล่าง
+  - สไตล์กลางอยู่ที่ `web/static/css/app.css` (โทเคนสี ปุ่ม แผง ฟอร์ม) ส่วนเฉพาะหน้าอยู่ที่ `web/static/css/pages/` (chat_app, progress, community, settings, auth, about)
+  - หน้าเข้าสู่ระบบ/สมัคร/รีเซ็ตรหัส/429/404/500 ใช้ `accounts/auth_base.html`; หน้า About (`/about/`) เป็นหน้าแนะนำแยก
+  - จุดที่เปลี่ยนจากของเดิมโดยตั้งใจ: ปิดช่องโหว่ XSS ในแชท, ตัวเลข "Trending" เป็นจำนวนโพสต์จริง, ตัดปุ่ม Follow/ตัวเลข Followers และลิงก์ที่ไม่มีปลายทางออก (ยังไม่มีระบบ follow)
+- **ห้าม CDN**: Bootstrap 5.3.8 (ไฟล์ที่คุณให้), Bootstrap Icons 1.11.1, ฟอนต์ Kanit/Outfit/Inter/Noto Sans Thai และ qrcode-generator (SweetAlert2 กับ AOS ยังอยู่ใน vendor แต่ไม่มีหน้าไหนใช้แล้ว)
   อยู่ใน `web/static/vendor/` และ `web/static/fonts/` ทั้งหมด บังคับด้วย CSP `default-src 'self'` (บล็อกทุก host ภายนอก) + เทสต์สแกนหา URL ภายนอก
   + เทสต์เรนเดอร์ทุกหน้าแล้วเช็คว่าไฟล์ `/static/...` ที่อ้างถึงมีจริง ข้อยกเว้นเดียวคือลิงก์บริจาค `tipme.in.th` (hyperlink + ข้อมูลใน QR ไม่ใช่ไฟล์ที่โหลดมาใช้)
   CSP อนุญาต inline script/style เพราะดีไซน์เดิมใช้ `onclick=""`, `<script>` และ `style=""` จำนวนมาก

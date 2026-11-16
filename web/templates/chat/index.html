@@ -1,157 +1,17 @@
-{% load static %}<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="csrf-token" content="{{ csrf_token }}">
-    <title>{% if current %}{{ current.title }} - {% endif %}พี่ริว AI ติวเตอร์ภาษา | ARAI GO GU</title>
-    <link rel="icon" href="{% static 'img/ryupro.ico' %}">
-    <script>
-        /* Apply the saved theme before first paint (no flash). Storage can be blocked: ignore errors. */
-        (function () {
-            var t = "system";
-            try { t = localStorage.getItem("agg-theme") || "system"; } catch (e) {}
-            if (t !== "system") document.documentElement.setAttribute("data-theme", t);
-            try { if (localStorage.getItem("agg-side") === "collapsed") document.documentElement.classList.add("side-collapsed"); } catch (e) {}
-        })();
-    </script>
-    <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
-    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
-    <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
-    <link rel="stylesheet" href="{% static 'css/pages/chat_app.css' %}">
-</head>
-
-<body
+{% extends "app/base.html" %}
+{% load static %}
+{% block title %}{% if current %}{{ current.title }}{% else %}พี่ริว AI ติวเตอร์ภาษา{% endif %}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/chat_app.css' %}">{% endblock %}
+{% block body_attrs %}
     data-guest="{% if is_guest %}1{% else %}0{% endif %}"
-    data-session-id="{{ current.pk|default:'' }}"
     data-language="{{ current_language }}"
     data-difficulty="{{ current_difficulty }}"
     data-locked="{% if language_locked %}1{% else %}0{% endif %}"
     data-send-new-url="{% url 'chat:send_new' %}"
     data-guest-reset-url="{% url 'chat:guest_reset' %}"
-    data-home-url="{% url 'home' %}"
-    data-bot-avatar="{% static 'img/Ryupro.png' %}">
+    data-bot-avatar="{% static 'img/Ryupro.png' %}"{% endblock %}
 
-<div class="app" id="app">
-    <div class="backdrop" id="backdrop"></div>
-
-    <!-- ============ Sidebar ============ -->
-    <aside class="side" id="side" aria-label="เมนูหลัก">
-        <div class="side-head">
-            <button type="button" class="icon-btn" id="sideToggle" title="ย่อ/ขยายเมนู" aria-label="ย่อหรือขยายเมนู">
-                <i class="bi bi-list"></i>
-            </button>
-            <a href="{% url 'home' %}" class="brand label">ARAI GO GU</a>
-        </div>
-
-        <button type="button" class="side-item side-new" id="newChatBtn" title="แชทใหม่">
-            <i class="bi bi-pencil-square"></i><span class="label">แชทใหม่</span>
-        </button>
-
-        <div class="side-scroll">
-            <div class="side-label label">หัวข้อการเรียน</div>
-            <nav class="side-group" aria-label="หัวข้อการเรียน">
-                {% for t in topics %}
-                <button type="button" class="side-item topic-btn" title="{{ t.title }}"
-                        data-prompt="{{ t.prompt }}" data-needs-image="{% if t.needs_image %}1{% else %}0{% endif %}">
-                    <i class="bi {{ t.icon }}"></i><span class="label">{{ t.title }}</span>
-                </button>
-                {% endfor %}
-            </nav>
-
-            <div class="side-label label">ล่าสุด</div>
-            {% if is_guest %}
-            <div class="side-note label">
-                <i class="bi bi-clock-history"></i>
-                <span>เข้าสู่ระบบเพื่อบันทึกประวัติแชท บทสนทนาที่ทดลองไว้จะถูกย้ายเข้าบัญชีให้อัตโนมัติ</span>
-            </div>
-            {% else %}
-            {% if sessions %}
-            <div class="side-search label">
-                <i class="bi bi-search"></i>
-                <input type="search" id="historySearch" placeholder="ค้นหาแชท" aria-label="ค้นหาประวัติแชท">
-            </div>
-            {% endif %}
-            <nav class="side-group" id="historyList" aria-label="ประวัติแชท">
-                {% for s in sessions %}
-                <a href="{% url 'chat:detail' s.pk %}" class="side-item history-item{% if current and current.pk == s.pk %} active{% endif %}"
-                   data-session-id="{{ s.pk }}" title="{{ s.title }}">
-                    <i class="bi bi-chat-left"></i><span class="label">{{ s.title }}</span>
-                    <button type="button" class="history-del" data-delete-id="{{ s.pk }}" title="ลบแชทนี้" aria-label="ลบแชทนี้">
-                        <i class="bi bi-trash3"></i>
-                    </button>
-                </a>
-                {% empty %}
-                <p class="side-note label" id="historyEmpty"><i class="bi bi-chat-left"></i><span>ยังไม่มีประวัติแชท</span></p>
-                {% endfor %}
-            </nav>
-            {% endif %}
-        </div>
-
-        <!-- Bottom: profile (members) / trial card (guests) -->
-        <div class="side-foot">
-            {% if is_guest %}
-            <div class="trial-card label" id="trialCard">
-                <div class="trial-top">
-                    <span><i class="bi bi-stars"></i> ทดลองใช้ฟรี</span>
-                    <span class="trial-count"><b id="quotaRemaining">{{ quota.remaining }}</b>/{{ quota.limit }}</span>
-                </div>
-                <div class="trial-bar"><span id="quotaBar" style="width: {% widthratio quota.used quota.limit 100 %}%"></span></div>
-                <p>ข้อความที่เหลือวันนี้ สมัครฟรีเพื่อใช้ได้ {{ member_limit|default:'100' }} ข้อความต่อวัน</p>
-                <a href="{% url 'accounts:register' %}" class="btn-solid w-100">สมัครสมาชิกฟรี</a>
-                <a href="{% url 'accounts:login' %}" class="btn-ghost w-100">เข้าสู่ระบบ</a>
-            </div>
-            <a href="{% url 'accounts:login' %}" class="side-item guest-rail" title="เข้าสู่ระบบ">
-                <i class="bi bi-box-arrow-in-right"></i>
-            </a>
-            {% else %}
-            <div class="dropup w-100">
-                <button type="button" class="profile-btn" data-bs-toggle="dropdown" aria-expanded="false" title="บัญชีและการตั้งค่า">
-                    <img src="{{ user.avatar_url }}" alt="" class="avatar">
-                    <span class="profile-meta label">
-                        <span class="profile-name">{{ user.full_name|default:user.email }}</span>
-                        <span class="profile-plan">แผนฟรี{% if quota.limit %} · ใช้ไป <span id="quotaUsed">{{ quota.used }}</span>/{{ quota.limit }} วันนี้{% endif %}</span>
-                    </span>
-                    <i class="bi bi-three-dots-vertical label"></i>
-                </button>
-                <div class="dropdown-menu profile-menu">
-                    <div class="profile-card">
-                        <img src="{{ user.avatar_url }}" alt="" class="avatar avatar-lg">
-                        <div>
-                            <div class="profile-name">{{ user.full_name|default:user.email }}</div>
-                            <div class="profile-mail">{{ user.email }}</div>
-                        </div>
-                    </div>
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="{% url 'community:profile' user.pk %}"><i class="bi bi-person"></i>โปรไฟล์ของฉัน</a>
-                    <a class="dropdown-item" href="{% url 'accounts:edit_profile' %}"><i class="bi bi-gear"></i>ตั้งค่าบัญชี</a>
-                    <a class="dropdown-item" href="{% url 'dashboard' %}"><i class="bi bi-grid"></i>แดชบอร์ด</a>
-                    <a class="dropdown-item" href="{% url 'community:feed' %}"><i class="bi bi-people"></i>ชุมชน</a>
-                    {% if user.is_staff %}<a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-shield-lock"></i>ผู้ดูแลระบบ</a>{% endif %}
-                    <div class="dropdown-divider"></div>
-                    <div class="theme-row">
-                        <span><i class="bi bi-circle-half"></i>ธีม</span>
-                        <div class="seg" role="group" aria-label="ธีม">
-                            <button type="button" data-theme-set="light" title="สว่าง"><i class="bi bi-sun"></i></button>
-                            <button type="button" data-theme-set="dark" title="มืด"><i class="bi bi-moon"></i></button>
-                            <button type="button" data-theme-set="system" title="ตามระบบ"><i class="bi bi-display"></i></button>
-                        </div>
-                    </div>
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right"></i>ออกจากระบบ</a>
-                </div>
-            </div>
-            {% endif %}
-        </div>
-    </aside>
-
-    <!-- ============ Main ============ -->
-    <main class="main">
-        <div class="bg-blur" aria-hidden="true"><span></span><span></span><span></span></div>
-
-        <header class="top">
-            <div class="top-left">
-                <button type="button" class="icon-btn d-lg-none" id="mobileMenu" aria-label="เปิดเมนู"><i class="bi bi-list"></i></button>
+{% block top_left %}
                 <div class="dropdown">
                     <button type="button" class="picker-btn" id="langPickerBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside"
                             aria-expanded="false" {% if language_locked %}disabled title="เริ่มแชทใหม่เพื่อเปลี่ยนภาษา"{% endif %}>
@@ -171,17 +31,16 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="top-right">
-                {% if is_guest %}
-                <button type="button" class="icon-btn" id="themeQuick" title="สลับธีม" aria-label="สลับธีม"><i class="bi bi-circle-half"></i></button>
-                <a href="{% url 'accounts:login' %}" class="btn-solid btn-sm-pill">เข้าสู่ระบบ</a>
-                {% else %}
-                <a href="{% url 'community:feed' %}" class="icon-btn" title="ชุมชน" aria-label="ชุมชน"><i class="bi bi-people"></i></a>
-                {% endif %}
-            </div>
-        </header>
+{% endblock %}
 
+{% block top_right %}
+                {% if is_guest %}
+                <button type="button" class="icon-btn" data-theme-toggle title="สลับธีม" aria-label="สลับธีม"><i class="bi bi-circle-half"></i></button>
+                <a href="{% url 'accounts:login' %}" class="btn-solid btn-sm-pill">เข้าสู่ระบบ</a>
+                {% endif %}
+{% endblock %}
+
+{% block main %}
         <section class="stage" id="stage">
             <!-- Empty state -->
             <div class="welcome" id="welcome" {% if chat_messages %}hidden{% endif %}>
@@ -281,18 +140,18 @@
                 {% if is_guest %}<span id="guestNote">ทดลองใช้ฟรี เหลือ <b id="quotaRemainingInline">{{ quota.remaining }}</b> ข้อความวันนี้ · </span>{% endif %}พี่ริวเป็น AI อาจตอบผิดได้ ควรตรวจสอบข้อมูลสำคัญอีกครั้ง
             </p>
         </footer>
-    </main>
-</div>
+{% endblock %}
 
+{% block modals %}
 {% if is_guest %}
 <!-- Sign-up prompt (images and saved history are for members) -->
 <div class="modal fade" id="joinModal" tabindex="-1" aria-labelledby="joinTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content join">
-            <button type="button" class="icon-btn join-close" data-bs-dismiss="modal" aria-label="ปิด"><i class="bi bi-x-lg"></i></button>
-            <div class="join-icon"><i class="bi bi-person-plus"></i></div>
+        <div class="modal-content sheet">
+            <button type="button" class="icon-btn sheet-close" data-bs-dismiss="modal" aria-label="ปิด"><i class="bi bi-x-lg"></i></button>
+            <div class="sheet-icon"><i class="bi bi-person-plus"></i></div>
             <h2 id="joinTitle">สมัครฟรี แล้วใช้พี่ริวได้เต็มที่</h2>
-            <ul class="join-list">
+            <ul class="sheet-list">
                 <li><i class="bi bi-image"></i>ส่งรูปการบ้านหรือหน้าหนังสือให้ช่วยแปลและตรวจ</li>
                 <li><i class="bi bi-clock-history"></i>บันทึกประวัติแชท กลับมาเรียนต่อได้ทุกเครื่อง</li>
                 <li><i class="bi bi-chat-dots"></i>คุยได้ {{ member_limit|default:'100' }} ข้อความต่อวัน และเลือกโหมดเจาะลึกได้</li>
@@ -304,8 +163,6 @@
     </div>
 </div>
 {% endif %}
+{% endblock %}
 
-<script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-<script src="{% static 'js/chat_app.js' %}"></script>
-</body>
-</html>
+{% block extra_js %}<script src="{% static 'js/chat_app.js' %}"></script>{% endblock %}
