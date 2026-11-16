@@ -1,0 +1,93 @@
+
+        :root {
+            --bg-color: #f8f9fa;
+            --nav-height: 70px;
+        }
+
+        body {
+            font-family: 'Outfit', 'Noto Sans Thai', sans-serif;
+            background-color: var(--bg-color);
+            padding-bottom: 100px;
+        }
+
+        .fw-800 {
+            font-weight: 800;
+        }
+
+        .fw-700 {
+            font-weight: 700;
+        }
+
+        .x-small {
+            font-size: 0.75rem;
+        }
+
+        .profile-container {
+            max-width: 600px;
+            margin: 0 auto;
+            border-left: 1px solid #eee;
+            border-right: 1px solid #eee;
+            background: #fff;
+            min-height: 100vh;
+        }
+
+        .cover-photo {
+            height: 150px;
+            background: #eee;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .avatar-wrap {
+            margin-top: -50px;
+            padding-left: 1.5rem;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 4px solid #fff;
+            background: #eee;
+            object-fit: cover;
+        }
+
+        .post-card {
+            border-bottom: 1px solid #eee;
+            padding: 1.5rem;
+        }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            height: var(--nav-height);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid #eee;
+            z-index: 1000;
+        }
+
+        .nav-item {
+            text-align: center;
+            color: #6c757d;
+            text-decoration: none;
+            flex: 1;
+        }
+
+        .nav-item.active {
+            color: #000;
+        }
+
+        .nav-label {
+            display: block;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+    

@@ -1,0 +1,398 @@
+
+        :root {
+            --bg-overlay: rgba(0, 0, 0, 0.4);
+            --card-bg: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #6c757d;
+            --accent-color: #000000;
+            --border-color: #f0f0f0;
+            --hover-bg: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Outfit', 'Noto Sans Thai', sans-serif;
+            background-color: #e5e5e5;
+            background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .edit-card {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 680px;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            animation: slideUp 0.4s ease-out;
+            box-sizing: border-box;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-header {
+            padding: 24px 32px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        .close-btn {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 1.5rem;
+            line-height: 1;
+            padding: 4px;
+            border-radius: 50%;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+        }
+
+        .close-btn:hover {
+            background: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .card-body {
+            padding: 32px;
+            box-sizing: border-box;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+            background: #fff;
+            color: var(--text-primary);
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+            appearance: none;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            background: #fff;
+        }
+
+        .form-control[readonly] {
+            background: var(--hover-bg);
+            color: var(--text-primary);
+            cursor: not-allowed;
+            opacity: 0.9;
+        }
+
+        .helper-text {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            line-height: 1.4;
+        }
+
+        /* Archetype Grid */
+        .archetype-section {
+            margin-top: 32px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .archetype-card {
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 16px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            background: #fff;
+            position: relative;
+            box-sizing: border-box;
+            min-height: 120px;
+        }
+
+        .archetype-card:hover {
+            transform: translateY(-4px);
+            border-color: #ddd;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .archetype-card.active {
+            border-color: var(--accent-color);
+            background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .archetype-card.active::after {
+            content: '✓';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: var(--accent-color);
+            color: #fff;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .archetype-img {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            object-fit: contain;
+            margin-bottom: 12px;
+            transition: transform 0.2s;
+            background: #f8f9fa;
+            padding: 4px;
+        }
+
+        .archetype-card:hover .archetype-img {
+            transform: scale(1.1);
+        }
+
+        .archetype-name {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-align: center;
+            color: var(--text-primary);
+            width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+        }
+
+        .card-footer {
+            padding: 24px 32px;
+            background: var(--hover-bg);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            box-sizing: border-box;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .btn-cancel {
+            background: transparent;
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-cancel:hover {
+            background: #e9ecef;
+            color: var(--text-primary);
+        }
+
+        .btn-save {
+            background: var(--accent-color);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+            background: #333;
+        }
+
+        /* Selected Archetype Info */
+        .selected-archetype-info {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+            border-left: 4px solid var(--accent-color);
+            display: none;
+        }
+
+        .selected-archetype-info.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .selected-archetype-title {
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .selected-archetype-traits {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 0;
+                background: #fff;
+                display: block;
+                min-height: 100vh;
+                height: auto;
+            }
+
+            .edit-card {
+                box-shadow: none;
+                border-radius: 0;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                max-width: 100%;
+            }
+
+            .card-header {
+                padding: 16px;
+                position: sticky;
+                top: 0;
+                background: #fff;
+                z-index: 10;
+            }
+
+            .card-body {
+                flex: 1;
+                padding: 20px 16px;
+            }
+
+            .grid-container {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+            }
+
+            .card-footer {
+                position: sticky;
+                bottom: 0;
+                background: #fff;
+                border-top: 1px solid #eee;
+                padding: 16px;
+            }
+
+            .archetype-card {
+                padding: 12px 6px;
+                min-height: 100px;
+            }
+
+            .archetype-img {
+                width: 48px;
+                height: 48px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .grid-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .card-body {
+                padding: 16px 12px;
+            }
+
+            .btn {
+                padding: 10px 16px;
+                min-width: 100px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Loading State */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        /* Bio Preview */
+        .bio-preview {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 8px;
+            border: 1px solid #eee;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: var(--text-primary);
+            white-space: pre-line;
+        }
+    

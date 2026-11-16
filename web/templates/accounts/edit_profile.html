@@ -1,0 +1,255 @@
+{% load static humanize %}<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>Edit Profile | Ryu Community</title>
+    <link rel="icon" href="{% static 'img/ryupro.ico' %}">
+
+    <!-- Bootstrap 5 + Icons + fonts: all served locally (no CDN) -->
+    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pages/edit_profile.css' %}">
+</head>
+
+<body>
+
+    <form action="{% url 'accounts:edit_profile' %}" method="POST" class="edit-card" id="profileForm">
+        {% csrf_token %}
+
+        <!-- Header -->
+        <div class="card-header">
+            <h1 class="card-title">แก้ไขโปรไฟล์</h1>
+            <a href="{% url 'community:profile' user.pk %}" class="close-btn"><i class="bi bi-x-lg"></i></a>
+        </div>
+
+        <div class="card-body">
+            <!-- User Info (Editable) -->
+            <div class="form-group">
+                <label class="form-label">ชื่อที่ใช้แสดง</label>
+                <input type="text" name="full_name" class="form-control"
+                    value="{{ profile.full_name }}" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">คำแนะนำตัว (ปรับเปลี่ยนอัตโนมัติตามตัวละคร)</label>
+                <div class="bio-preview" id="bioPreview">
+                    {{ profile.bio|linebreaksbr }}
+                </div>
+                <input type="hidden" name="bio" id="bioInput" value="{{ profile.bio }}">
+                <div class="helper-text">คำแนะนำตัวจะเปลี่ยนไปตามตัวละครที่คุณเลือก</div>
+            </div>
+
+            <!-- Archetype Selector -->
+            <div class="archetype-section">
+                <label class="form-label">เลือกตัวละครประจำตัว</label>
+                <p class="helper-text">เลือกคาแรคเตอร์ที่ตรงกับความเป็นคุณ (คลิกเพื่อดูรายละเอียด)</p>
+
+                <input type="hidden" name="archetype" id="selectedArchetypeInput"
+                    value="{{ profile.archetype }}">
+
+                <div class="grid-container">
+                    {% for a in archetypes %}
+                    
+                    <div class="archetype-card {% if profile.archetype == a.key %}active{% endif %}" onclick="selectArchetype('{{ a.key }}', 
+                            '{{ a.name|escapejs }}', 
+                            '{{ a.traits|escapejs }}', 
+                            '{{ a.story|escapejs }}')" data-key="{{ a.key }}"
+                        data-name="{{ a.name }}"
+                        data-traits="{{ a.traits }}"
+                        data-story="{{ a.story }}">
+                        <img src="{% static a.icon %}"
+                            onerror="this.onerror=null;this.src='{% static 'img/Ryupro.png' %}'"
+                            class="archetype-img" alt="{{ a.name }}" loading="lazy">
+                        <span class="archetype-name">
+                            {{ a.name }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Selected Archetype Info -->
+                <div class="selected-archetype-info" id="selectedArchetypeInfo">
+                    <div class="selected-archetype-title" id="selectedArchetypeName"></div>
+                    <div class="selected-archetype-traits" id="selectedArchetypeTraits"></div>
+                    <div class="helper-text mt-2" id="selectedArchetypeStory"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="card-footer">
+            <a href="{% url 'community:profile' user.pk %}" class="btn btn-cancel">ยกเลิก</a>
+            <button type="submit" class="btn btn-save" id="saveBtn">บันทึกการเปลี่ยนแปลง</button>
+        </div>
+
+    </form>
+
+    {{ archetypes_map|json_script:"archetypes-data" }}
+    {{ profile.bio|json_script:"bio-data" }}
+    <script>
+        const archetypesData = JSON.parse(document.getElementById('archetypes-data').textContent);
+
+        // Default bio text (initial value)
+        const defaultBio = JSON.parse(document.getElementById('bio-data').textContent);
+
+        function selectArchetype(key, name, traits, story) {
+            console.log('Selecting archetype:', key, name);
+
+            // Remove active class from all
+            document.querySelectorAll('.archetype-card').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Add active class to clicked
+            const card = document.querySelector(`.archetype-card[data-key="${key}"]`);
+            if (card) {
+                card.classList.add('active');
+
+                // Update hidden input
+                document.getElementById('selectedArchetypeInput').value = key;
+
+                // Show archetype info
+                const infoDiv = document.getElementById('selectedArchetypeInfo');
+                const nameDiv = document.getElementById('selectedArchetypeName');
+                const traitsDiv = document.getElementById('selectedArchetypeTraits');
+                const storyDiv = document.getElementById('selectedArchetypeStory');
+
+                nameDiv.textContent = name;
+                traitsDiv.textContent = traits;
+                storyDiv.textContent = story;
+
+                infoDiv.classList.add('show');
+
+                // Update bio preview and hidden input based on archetype
+                updateBioForArchetype(key);
+            }
+        }
+
+        function updateBioForArchetype(archetypeKey) {
+            console.log('Updating bio for archetype:', archetypeKey);
+
+            const archetype = archetypesData[archetypeKey];
+            if (!archetype) {
+                console.error('Archetype not found:', archetypeKey);
+                return;
+            }
+
+            // Create new bio based on archetype traits
+            const newBio = generateBioFromArchetype(archetype);
+            const bioPreview = document.getElementById('bioPreview');
+            const bioInput = document.getElementById('bioInput');
+
+            if (bioPreview && bioInput) {
+                bioPreview.innerHTML = newBio.replace(/\n/g, '<br>');
+                bioInput.value = newBio;
+                console.log('Bio updated:', newBio);
+            }
+        }
+
+        function generateBioFromArchetype(archetype) {
+            const traits = archetype.traits.split('\n').filter(t => t.trim()).slice(0, 3);
+            const name = archetype.name;
+
+            let bio = `✨ ${name} ✨\n\n`;
+            bio += "ลักษณะเด่น:\n";
+            traits.forEach(trait => {
+                bio += `• ${trait.trim()}\n`;
+            });
+
+            bio += "\nพร้อมให้กำลังใจและสร้างแรงบันดาลใจให้กับทุกคนในชุมชน!";
+
+            return bio;
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('Page loaded, initial archetype:', '{{ profile.archetype|escapejs }}');
+
+            // If user already has an archetype selected, show its info
+            const currentArchetype = '{{ profile.archetype|escapejs }}';
+            if (currentArchetype && archetypesData[currentArchetype]) {
+                const archetype = archetypesData[currentArchetype];
+                const infoDiv = document.getElementById('selectedArchetypeInfo');
+                const nameDiv = document.getElementById('selectedArchetypeName');
+                const traitsDiv = document.getElementById('selectedArchetypeTraits');
+                const storyDiv = document.getElementById('selectedArchetypeStory');
+
+                nameDiv.textContent = archetype.name;
+                traitsDiv.textContent = archetype.traits;
+                storyDiv.textContent = archetype.story;
+                infoDiv.classList.add('show');
+            }
+
+            // Handle form submission
+            const form = document.getElementById('profileForm');
+            const saveBtn = document.getElementById('saveBtn');
+
+            form.addEventListener('submit', function (e) {
+                console.log('Form submitting...');
+                console.log('Selected archetype:', document.getElementById('selectedArchetypeInput').value);
+                console.log('Bio:', document.getElementById('bioInput').value);
+
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> กำลังบันทึก...';
+                saveBtn.classList.add('loading');
+
+                // Allow form to submit normally
+                return true;
+            });
+
+            // Add click handler to all archetype cards to ensure they work
+            document.querySelectorAll('.archetype-card').forEach(card => {
+                card.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    const key = this.getAttribute('data-key');
+                    const name = this.getAttribute('data-name');
+                    const traits = this.getAttribute('data-traits');
+                    const story = this.getAttribute('data-story');
+
+                    selectArchetype(key, name, traits, story);
+                });
+            });
+
+            // Close archetype info when clicking outside
+            document.addEventListener('click', function (e) {
+                const infoDiv = document.getElementById('selectedArchetypeInfo');
+                const isArchetypeCard = e.target.closest('.archetype-card');
+
+                if (!isArchetypeCard && infoDiv && infoDiv.classList.contains('show')) {
+                    // Don't hide if clicking on the info itself
+                    if (!e.target.closest('#selectedArchetypeInfo')) {
+                        infoDiv.classList.remove('show');
+                    }
+                }
+            });
+
+            // Add animation to active card on load
+            const activeCard = document.querySelector('.archetype-card.active');
+            if (activeCard) {
+                setTimeout(() => {
+                    activeCard.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        activeCard.style.transform = '';
+                    }, 300);
+                }, 500);
+            }
+        });
+
+        // Handle Escape key to close archetype info
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                const infoDiv = document.getElementById('selectedArchetypeInfo');
+                if (infoDiv) {
+                    infoDiv.classList.remove('show');
+                }
+            }
+        });
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,92 @@
+{% load static humanize ryu %}{% for post in page %}
+            <a href="{% url 'community:detail' post.id %}" class="post-card">
+                <div class="d-flex gap-3">
+                    <div
+                        onclick="event.preventDefault(); window.location.href='{% url 'community:profile' post.author_id %}'">
+                        <img src="{{ post.author.avatar_url }}" class="user-avatar" alt="User">
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="fw-700">
+                                {{ post.author.full_name }}
+                            </span>
+                            {% if post.author.archetype %}
+                            <span class="badge bg-light text-dark x-small border rounded-pill">
+                                {{ post.author.archetype|upper }}
+                            </span>
+                            {% endif %}
+                            <span class="text-muted small">·
+                                {{ post.created_at|en_date:"M d" }}
+                            </span>
+                        </div>
+                        <p class="mb-3">
+                            {{ post.content|linebreaksbr }}
+                        </p>
+
+                        <div class="d-flex justify-content-between" style="max-width: 400px;">
+                            <!-- Like -->
+                            <form action="{% url 'community:toggle' post.id 'like' %}" data-ajax-toggle="like" method="POST" class="m-0"
+                                onclick="event.stopPropagation()">
+                                {% csrf_token %}
+                                <input type="hidden" name="post_id" value="{{ post.id }}">
+                                <button type="submit" class="interaction-btn {% if post.liked %}liked{% endif %}">
+                                    <i class="bi bi-heart{% if post.liked %}-fill{% endif %}"></i>
+                                    <span>
+                                        {{ post.like_count }}
+                                    </span>
+                                </button>
+                            </form>
+
+                            <!-- Repost -->
+                            <form action="{% url 'community:toggle' post.id 'repost' %}" data-ajax-toggle="repost" method="POST" class="m-0"
+                                onclick="event.stopPropagation()">
+                                {% csrf_token %}
+                                <input type="hidden" name="post_id" value="{{ post.id }}">
+                                <button type="submit"
+                                    class="interaction-btn {% if post.reposted %}reposted{% endif %}">
+                                    <i class="bi bi-repeat"></i>
+                                    <span>
+                                        {{ post.repost_count }}
+                                    </span>
+                                </button>
+                            </form>
+
+                            <!-- Comment -->
+                            <div class="interaction-btn">
+                                <i class="bi bi-chat"></i>
+                                <span class="js-comment-count" data-post-id="{{ post.id }}">{{ post.comment_count }}</span>
+                            </div>
+
+                            <!-- Bookmark -->
+                            <form action="{% url 'community:toggle' post.id 'bookmark' %}" data-ajax-toggle="bookmark" method="POST" class="m-0"
+                                onclick="event.stopPropagation()">
+                                {% csrf_token %}
+                                <input type="hidden" name="post_id" value="{{ post.id }}">
+                                <button type="submit"
+                                    class="interaction-btn {% if post.bookmarked %}bookmarked{% endif %}">
+                                    <i class="bi bi-bookmark{% if post.bookmarked %}-fill{% endif %}"></i>
+                                </button>
+                            </form>
+
+                            <!-- Share -->
+                            <button type="button" class="interaction-btn"
+                                onclick="event.stopPropagation(); navigator.clipboard.writeText('{{ request.scheme }}://{{ request.get_host }}{% url 'community:detail' post.id %}'); alert('คัดลอกลิ้งค์แล้ว!');">
+                                <i class="bi bi-share"></i>
+                            </button>
+                        </div>
+
+                        <!-- Quick Reply Form -->
+                        <div class="quick-reply-area" onclick="event.stopPropagation()">
+                            <form action="{% url 'community:add_comment' post.id %}" method="POST" class="d-flex gap-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="post_id" value="{{ post.id }}">
+                                <textarea name="content" class="form-control quick-reply-input auto-expand-textarea"
+                                    placeholder="พิมพ์คอมเม้นท์ตอบกลับ..." required rows="1"></textarea>
+                                <button type="submit" class="btn btn-dark btn-sm rounded-pill px-3 align-self-end"
+                                    style="height: 34px;">ส่ง</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}

@@ -1,0 +1,192 @@
+
+        :root {
+            --bg-color: #f8f9fa;
+            --accent-color: #000000;
+            --nav-height: 70px;
+            --card-radius: 20px;
+        }
+
+        body {
+            font-family: 'Outfit', 'Noto Sans Thai', sans-serif;
+            background-color: var(--bg-color);
+            padding-bottom: 160px;
+        }
+
+        .fw-800 {
+            font-weight: 800;
+        }
+
+        .fw-700 {
+            font-weight: 700;
+        }
+
+        .post-detail-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            min-height: 100vh;
+            border-left: 1px solid #eee;
+            border-right: 1px solid #eee;
+        }
+
+        .main-post {
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #eee;
+        }
+
+        .post-meta-integrated {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1rem 0;
+            border-top: 1px solid #f8f9fa;
+            border-bottom: 1px solid #f8f9fa;
+            margin: 1.5rem 0;
+        }
+
+        .meta-stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.95rem;
+            color: #1a1a1a;
+        }
+
+        .meta-stat span {
+            font-weight: 700;
+        }
+
+        .meta-label {
+            color: #6c757d;
+        }
+
+        .interaction-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: 0.5rem 0;
+        }
+
+        .interaction-btn {
+            color: #65676b;
+            font-size: 1.25rem;
+            transition: 0.2s;
+            background: none;
+            border: none;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .interaction-btn:hover {
+            color: var(--accent-color);
+            background-color: #f0f2f5;
+        }
+
+        .interaction-btn.liked {
+            color: #e0245e;
+        }
+
+        .interaction-btn.liked:hover {
+            background-color: rgba(224, 36, 94, 0.1);
+        }
+
+        .interaction-btn.reposted {
+            color: #17bf63;
+        }
+
+        .interaction-btn.reposted:hover {
+            background-color: rgba(23, 191, 99, 0.1);
+        }
+
+        .interaction-btn.bookmarked {
+            color: #0d6efd;
+        }
+
+        .interaction-btn.bookmarked:hover {
+            background-color: rgba(13, 110, 253, 0.1);
+        }
+
+        .comment-card {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #f8f9fa;
+            transition: background 0.2s;
+        }
+
+        .comment-card:hover {
+            background-color: #fafafa;
+        }
+
+        .ryu-badge {
+            background: #000;
+            color: #fff;
+            font-size: 0.65rem;
+            padding: 2px 10px;
+            border-radius: 50px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            height: var(--nav-height);
+            display: flex;
+            align-items: center;
+            border-top: 1px solid #eee;
+            z-index: 1000;
+        }
+
+        .nav-item {
+            text-align: center;
+            color: #6c757d;
+            text-decoration: none;
+            flex: 1;
+        }
+
+        .nav-label {
+            display: block;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .comment-form-fixed {
+            position: fixed;
+            bottom: var(--nav-height);
+            left: 0;
+            right: 0;
+            background: #fff;
+            padding: 1rem;
+            border-top: 1px solid #eee;
+            z-index: 999;
+            box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.03);
+        }
+
+        .comment-form-inner {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Auto-expanding textarea */
+        .auto-expand-textarea {
+            resize: none;
+            min-height: 40px;
+            max-height: 120px;
+            overflow-y: hidden;
+            transition: height 0.1s ease;
+            line-height: 1.4;
+        }
+    

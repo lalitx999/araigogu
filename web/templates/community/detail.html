@@ -1,0 +1,210 @@
+{% load static humanize ryu %}<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>Arai Go GU</title>
+    <link rel="icon" href="{% static 'img/ryupro.ico' %}">
+
+    <!-- Bootstrap 5 + Icons + fonts: all served locally (no CDN) -->
+    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pages/post.css' %}">
+</head>
+
+<body>
+    <div class="post-detail-container">
+        <!-- Header -->
+        <div class="px-3 py-2 border-bottom d-flex align-items-center gap-3 sticky-top bg-white" style="z-index: 1001;">
+            <a href="{% url 'community:feed' %}" class="text-dark"><i class="bi bi-arrow-left fs-4"></i></a>
+            <h6 class="fw-800 mb-0">เรื่องราวของเพื่อนๆ</h6>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-post">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <img src="{{ post.author.avatar_url }}" class="user-avatar" alt="User">
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="fw-800 mb-0 leading-1">
+                                {{ post.author.full_name }}
+                            </div>
+                            <div class="text-muted small">@
+                                {{ post.author.full_name|handle }}
+                            </div>
+                        </div>
+                        <button class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-700">Follow</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="post-body">
+                <p class="fs-4 fw-400 mb-4" style="line-height: 1.5; color: #0f1419;">
+                    {{ post.content|linebreaksbr }}
+                </p>
+                <div class="text-muted small mb-3">
+                    {{ post.created_at|en_date:"H:i · M d, Y" }} · <span class="fw-600 text-dark">Ryu
+                        Premium</span>
+                </div>
+            </div>
+
+            <!-- Integrated Stats -->
+            <div class="post-meta-integrated">
+                <div class="meta-stat">
+                    <span>
+                        {{ post.repost_count|intcomma }}
+                    </span>
+                    <div class="meta-label">Reposts</div>
+                </div>
+                <div class="meta-stat">
+                    <span>
+                        {{ post.like_count|intcomma }}
+                    </span>
+                    <div class="meta-label">Likes</div>
+                </div>
+                <div class="meta-stat">
+                    <span>
+                        {{ comments|length }}
+                    </span>
+                    <div class="meta-label">Comments</div>
+                </div>
+            </div>
+
+            <!-- Modern Interaction Bar -->
+            <div class="interaction-bar border-bottom pb-2">
+                <form action="{% url 'community:toggle' post.id 'like' %}" data-ajax-toggle="like" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="post_id" value="{{ post.id }}">
+                    <button type="submit" class="interaction-btn {% if post.liked %}liked{% endif %}">
+                        <i class="bi bi-heart{% if post.liked %}-fill{% endif %}"></i>
+                    </button>
+                </form>
+
+                <form action="{% url 'community:toggle' post.id 'repost' %}" data-ajax-toggle="repost" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="post_id" value="{{ post.id }}">
+                    <button type="submit" class="interaction-btn {% if post.reposted %}reposted{% endif %}">
+                        <i class="bi bi-repeat"></i>
+                    </button>
+                </form>
+
+                <button class="interaction-btn" onclick="document.querySelector('[name=\'content\']').focus()">
+                    <i class="bi bi-chat"></i>
+                </button>
+
+                <form action="{% url 'community:toggle' post.id 'bookmark' %}" data-ajax-toggle="bookmark" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="post_id" value="{{ post.id }}">
+                    <button type="submit" class="interaction-btn {% if post.bookmarked %}bookmarked{% endif %}">
+                        <i class="bi bi-bookmark{% if post.bookmarked %}-fill{% endif %}"></i>
+                    </button>
+                </form>
+
+                <button type="button" class="interaction-btn"
+                    onclick="navigator.clipboard.writeText(window.location.href); alert('คัดลอกลิ้งค์แล้ว!');">
+                    <i class="bi bi-share"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Comments Section -->
+        <div class="comments-section pb-5">
+            {% for comment in comments %}
+            <div class="comment-card">
+                <div class="d-flex gap-3">
+                    <img src="{{ comment.avatar_url }}" class="user-avatar"
+                        style="width: 40px; height: 40px;" alt="User">
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="fw-800 small">
+                                    {{ comment.display_name }}
+                                </span>
+                                {% if comment.is_ai %}<span class="ryu-badge">RYU AI</span>
+                                {% endif %}
+                            </div>
+                            <span class="text-muted x-small">
+                                {{ comment.created_at|en_date:"M d" }}
+                            </span>
+                        </div>
+                        <p class="mb-0 small" style="line-height: 1.4; color: #333;">
+                            {{ comment.body|linebreaksbr }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if not comments %}
+            <div class="text-center py-5">
+                <i class="bi bi-chat-dots text-muted fs-1 mb-2 d-block"></i>
+                <p class="text-muted small">ยังไม่มีคอมเม้นท์ พี่ริวเหงาจัง... มาเป็นคนแรกกันเถอะ!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Floating Comment Input -->
+    <div class="comment-form-fixed">
+        <form action="{% url 'community:add_comment' post.id %}" method="POST" class="comment-form-inner">
+            {% csrf_token %}
+            <input type="hidden" name="post_id" value="{{ post.id }}">
+            <div class="d-flex gap-2">
+                <img src="{{ user.avatar_url }}" class="user-avatar"
+                    style="width: 38px; height: 38px;" alt="Me">
+                <div class="flex-grow-1 position-relative">
+                    <textarea name="content"
+                        class="form-control auto-expand-textarea rounded-4 border-light bg-light py-2 px-3"
+                        placeholder="เขียนคำตอบของคุณ..." required style="padding-right: 80px;" rows="1"></textarea>
+                    <button type="submit" class="btn btn-dark btn-sm rounded-pill position-absolute"
+                        style="right: 5px; top: 7px; height: 28px; font-size: 0.8rem; padding: 0 15px;">ส่ง</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav">
+        <a href="{% url 'community:feed' %}" class="nav-item active"><i class="bi bi-house-door fs-4"></i><span
+                class="nav-label">Home</span></a>
+        <a href="{% url 'community:search' %}" class="nav-item"><i class="bi bi-search fs-4"></i><span
+                class="nav-label">Explore</span></a>
+        <a href="{% url 'community:profile' user.pk %}" class="nav-item"><i class="bi bi-person fs-4"></i><span
+                class="nav-label">Profile</span></a>
+    </nav>
+
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script>
+        // Auto-expand textarea
+        document.querySelectorAll('.auto-expand-textarea').forEach(textarea => {
+            textarea.addEventListener('input', function () {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+
+                // Toggle overflow if max height reached
+                if (this.scrollHeight > 120) {
+                    this.style.overflowY = 'auto';
+                } else {
+                    this.style.overflowY = 'hidden';
+                }
+            });
+
+            // Handle Enter key (submit on Enter, new line on Shift+Enter)
+            textarea.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (this.value.trim()) {
+                        this.closest('form').submit();
+                    }
+                }
+            });
+        });
+    </script>
+    <script src="{% static 'js/community.js' %}"></script>
+</body>
+
+</html>

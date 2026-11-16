@@ -1,0 +1,10 @@
+.env
+.env.prod
+backups/
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
+db.sqlite3
+staticfiles/
+*.sql

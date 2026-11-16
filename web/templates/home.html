@@ -1,0 +1,549 @@
+{% load static humanize %}<!DOCTYPE html>
+<html lang="th
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>Arai Go GU - ฝึกภาษา 120 ภาษาด้วย AI ส่วนตัว | เริ่มต้นฟรี</title>
+    <meta name="description" content="ฝึกฝนและเรียนรู้ 120 ภาษาทั่วโลกด้วย Arai Go GU AI ผู้ช่วยสอนภาษาอัจฉริยะ ปรับหลักสูตรส่วนตัว, สนทนาเสมือนจริง, เรียนได้ทุกที่ทุกเวลา">
+    <meta name="keywords" content="เรียนภาษา, AI สอนภาษา, ฝึกภาษา 120 ภาษา, ภาษาต่างประเทศ, ผู้ช่วยสอนภาษา, เรียนฟรี, ฝึกสนทนา, Arai Go GU AI">
+    <link rel="icon" href="{% static 'img/ryupro.ico' %}">
+
+    <!-- Bootstrap 5 + Icons + fonts: all served locally (no CDN) -->
+    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
+    <link href="{% static 'vendor/aos/aos.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}">
+</head>
+
+<body>
+    <!-- Theme Toggle -->
+    <button class="theme-toggle" onclick="toggleTheme()">
+        <i class="bi bi-moon"></i>
+    </button>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-4" href="{% url 'home' %}">
+                <i class="bi bi-translate me-2"></i> <span class="text-gradient-bw">Arai Go GU</span>
+            </a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <i class="bi bi-list fs-3"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#how-to">ขั้นตอนการเรียน</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#support">สนับสนุน</a>
+                    </li>
+                    <li class="nav-item ms-lg-3">
+                        {% if not user.is_authenticated %}
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'accounts:login' %}" class="btn btn-outline-black px-4">เข้าสู่ระบบ</a>
+                            <a href="{% url 'accounts:register' %}" class="btn btn-black px-4">สมัครสมาชิก</a>
+                        </div>
+                        {% else %}
+                        <div class="dropdown">
+                            <button class="btn glass-morphism dropdown-toggle border-0" type="button"
+                                data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle me-2"></i>
+                                {{ user.full_name }}
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2">
+                                <li><a class="dropdown-item rounded-2" href="{% url 'community:profile' user.pk %}"><i
+                                            class="bi bi-person me-2"></i>โปรไฟล์</a></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li><a class="dropdown-item text-danger rounded-2" href="{% url 'accounts:logout' %}"><i
+                                            class="bi bi-box-arrow-right me-2"></i>ออกจากระบบ</a></li>
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="hero-title fw-800 mb-4" data-aos="fade-right">
+                        เรียนภาษาได้ทุกที่ <br>แค่<span class="text-gradient-bw">แชทกับ AI</span>
+                    </h1>
+                    <p class="hero-description mb-5" data-aos="fade-right" data-aos-delay="100">
+                        ถามคำศัพท์ ไวยากรณ์ ฝึกแต่งประโยค <br>
+                        คุยจริงเหมือนมีครูส่วนตัวคอยสอนตลอดเวลา
+                    </p>
+                    <div class="d-flex gap-4 align-items-center flex-wrap mb-4" data-aos="fade-right"
+                        data-aos-delay="200">
+                        <div class="text-center">
+                            <span class="d-block fs-2 fw-800 text-gradient-bw">120</span>
+                            <span class="small fw-bold text-muted">ภาษา</span>
+                        </div>
+                        <div class="vr opacity-10"></div>
+                        <div class="text-center">
+                            <span class="d-block fs-2 fw-800 text-gradient-bw">
+                                {{ total_users|intcomma }}
+                            </span>
+                            <span class="small fw-bold text-muted">ผู้เรียน</span>
+                        </div>
+                    </div>
+                    <a href="{% url 'chat:index' %}" class="btn btn-black btn-lg px-5 py-3 shadow-lg" data-aos="zoom-in"
+                        data-aos-delay="300">
+                        เริ่มสนทนากับ AI <i class="bi bi-chat-dots-fill ms-2"></i>
+                    </a>
+                </div>
+                <div class="col-lg-6 text-center mt-5 mt-lg-0" data-aos="fade-left">
+                    <div class="position-relative d-inline-block">
+                        <img src="{% static 'img/Ryupro.png' %}" alt="Polyglot AI Assistant"
+                            class="character-img">
+                        <div class="glass-morphism position-absolute bottom-0 end-0 p-3 rounded-4 shadow-lg text-start mb-n4 me-lg-n4"
+                            style="max-width: 250px;">
+                            <p class="mb-0 small fw-800"><i class="bi bi-stars text-warning me-1"></i> AI Personal Tutor
+                            </p>
+                            <p class="mb-0 x-small text-muted font-kanit" id="aiGreetingText">"สวัสดี!
+                                วันนี้อยากฝึกภาษาอะไรครับ?"</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- How-to Section -->
+    <section class="container py-5" id="how-to">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <h2 class="display-5 fw-800 mb-2">ขั้นตอนการเรียน</h2>
+            <div class="mx-auto bg-gradient-bw" style="height: 4px; width: 60px; border-radius: 2px;"></div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+                <div class="step-item" data-aos="fade-up">
+                    <div class="step-number">01</div>
+                    <div class="step-content">
+                        <h3 class="fw-bold mb-2">สมัครใช้งานฟรี</h3>
+                        <p class="text-muted mb-0">สมัครใช้งานได้ทันที ไม่มีค่าใช้จ่าย เปิดโอกาสให้คุณฝึกและสนทนากับ AI
+                            ได้ถึง 120 ภาษา</p>
+                    </div>
+                </div>
+
+                <div class="step-item" data-aos="fade-up" data-aos-delay="100">
+                    <div class="step-number">02</div>
+                    <div class="step-content">
+                        <h3 class="fw-bold mb-2">สร้างห้องแชทแยกหัวข้อ</h3>
+                        <p class="text-muted mb-0">สร้างห้องแชทได้หลายหัวข้อ ไม่จำกัดจำนวน ใช้แยกฝึกแต่ละภาษา
+                            หรือแต่ละเป้าหมายได้อย่างอิสระ</p>
+                    </div>
+                </div>
+
+                <div class="step-item" data-aos="fade-up" data-aos-delay="200">
+                    <div class="step-number">03</div>
+                    <div class="step-content">
+                        <h3 class="fw-bold mb-2">เริ่มสนทนาทันที</h3>
+                        <p class="text-muted mb-0">เลือกภาษาที่อยากเรียน แล้วเริ่มสนทนาได้ทันที AI
+                            จะปรับบทเรียนให้เหมาะกับคุณโดยอัตโนมัติ</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Support Section - โดเนทแบบเด้งๆ สวยๆ -->
+    <section class="container py-5" id="support">
+        <div class="support-section" data-aos="zoom-in">
+            <!-- Animated Bubbles -->
+            <div class="support-bubble"></div>
+            <div class="support-bubble"></div>
+            <div class="support-bubble"></div>
+
+            <div class="donate-card">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <h3 class="display-6 fw-800 mb-3">
+                            <i class="bi bi-heart-fill text-danger me-2"></i>
+                            สนับสนุน Arai Go GU
+                        </h3>
+                        <p class="lead text-muted mb-4 fs-5">
+                            ช่วยให้เราพัฒนาฟีเจอร์เจ๋งๆ ต่อไปได้ ด้วยการสนับสนุนเล็กๆ น้อยๆ จากคุณ
+                            ทุกการสนับสนุนจะถูกนำไปพัฒนาระบบและเพิ่มฟีเจอร์ใหม่ๆ
+                        </p>
+
+                        <!-- Progress Bar -->
+
+                        <button class="donate-btn" onclick="showDonatePopup()">
+                            สนับสนุนตอนนี้ <i class="bi bi-heart-pulse ms-2"></i>
+                        </button>
+
+                        <div class="mt-4">
+                            <p class="text-muted small mb-1">วิธีการสนับสนุน:</p>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge bg-dark text-white px-3 py-2">QR Code</span>
+                                <span class="badge bg-dark text-white px-3 py-2">บัตรเครดิต</span>
+                                <span class="badge bg-dark text-white px-3 py-2">PromptPay</span>
+                                <span class="badge bg-dark text-white px-3 py-2">TrueMoney</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 text-center mt-4 mt-lg-0">
+                        <!-- Heart Animation -->
+                        <i class="bi bi-chat-heart-fill heart-animation mb-4"></i>
+
+                        <!-- Coin Animation -->
+                        <div class="coin-container">
+                            <div class="coin"><i class="bi bi-coin"></i></div>
+                            <div class="coin"><i class="bi bi-coin"></i></div>
+                            <div class="coin"><i class="bi bi-coin"></i></div>
+                            <div class="coin"><i class="bi bi-coin"></i></div>
+                            <div class="coin"><i class="bi bi-coin"></i></div>
+                            <div class="coin"><i class="bi bi-coin"></i></div>
+                        </div>
+
+                        <p class="text-muted small">ขอบคุณสำหรับการสนับสนุนทุกท่าน!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Course Promotion Section - ย้ายมาไว้ใต้โดเนท -->
+    <section class="course-promo-section" id="course-promo">
+        <div class="container">
+            <div class="row justify-content-center mb-5" data-aos="fade-up">
+                <div class="col-lg-10 text-center">
+                    <h2 class="course-promo-title mb-3">🎯 คอร์สเรียนแนะแนวโดยพี่ริว</h2>
+                    <p class="lead text-muted mb-0">เรียนภาษาแบบเจาะลึกกับคอร์สที่ออกแบบโดย AI ผู้เชี่ยวชาญ
+                        พร้อมรับรองผลความเข้าใจ</p>
+                </div>
+            </div>
+
+            <div class="row justify-content-center mb-5" data-aos="fade-up" data-aos-delay="100">
+                <div class="col-lg-10">
+                    <div class="course-promo-card">
+                        <div class="text-center mb-4">
+                            <img src="{% static 'img/course.png' %}" alt="คอร์สเรียนแนะแนวโดยพี่ริว"
+                                class="img-fluid rounded-4 shadow-lg" style="max-height: 500px; width: auto;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row g-4 mb-5">
+                <div class="col-lg-4">
+                    <div class="footer-brand">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <i class="bi bi-translate fs-3 text-white"></i>
+                            <h4 class="fw-bold mb-0 text-white">Arai Go GU</h4>
+                        </div>
+                        <p class="text-white-50 mb-4">
+                            ผู้ช่วยสอนภาษาอัจฉริยะ 120 ภาษา <br>
+                            พัฒนาทักษะภาษาได้ทุกที่ทุกเวลาด้วยเทคโนโลยี AI
+                        </p>
+                        <div class="d-flex gap-2">
+                            <a href="#" class="social-icon"><i class="bi bi-facebook"></i></a>
+                            <a href="#" class="social-icon"><i class="bi bi-tiktok"></i></a>
+                            <a href="#" class="social-icon"><i class="bi bi-twitter-x"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 col-lg-2">
+                    <h6 class="footer-title">เมนูหลัก</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#how-to" class="footer-link">วิธีการใช้</a></li>
+                        <li><a href="#support" class="footer-link">การสนับสนุน</a></li>
+                        <li><a href="#course-promo" class="footer-link">คอร์สเรียน</a></li>
+                        <li><a href="{% url 'chat:index' %}" class="footer-link">เริ่มแชท AI</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-md-4 col-lg-2">
+                    <h6 class="footer-title">กฎหมาย</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="footer-link">นโยบายความเป็นส่วนตัว</a></li>
+                        <li><a href="#" class="footer-link">ข้อกำหนดใช้งาน</a></li>
+                        <li><a href="#" class="footer-link">นโยบายคุกกี้</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-md-4 col-lg-4">
+                    <h6 class="footer-title">สถานะระบบ</h6>
+                    <div class="mb-3">
+                        <span
+                            class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 px-3 py-2 rounded-3">
+                            <i class="bi bi-check-circle-fill me-2"></i> ระบบทำงานปกติ
+                        </span>
+                    </div>
+                    <div class="text-white-50 small mb-2">
+                        <i class="bi bi-envelope-fill me-2"></i> contact@araigogu.online
+                    </div>
+                    <div class="text-white-50 small">
+                        <i class="bi bi-lightning-charge-fill me-2"></i> Response Time: < 100ms </div>
+                    </div>
+                </div>
+
+                <hr class="opacity-25 my-4">
+
+                <div class="text-center text-white-50 small">
+                    &copy;
+                    {% now "Y" %} Arai Go GU. All rights reserved.
+                </div>
+            </div>
+    </footer>
+
+    <!-- Back to Top -->
+    <button class="back-to-top" onclick="scrollToTop()">
+        <i class="bi bi-arrow-up"></i>
+    </button>
+
+    <!-- Scripts -->
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'vendor/sweetalert2/sweetalert2.all.min.js' %}"></script>
+    <script src="{% static 'vendor/aos/aos.js' %}"></script>
+    <script src="{% static 'vendor/qrcode/qrcode.js' %}"></script>
+
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100
+        });
+
+        // Dynamic Greeting
+        function updateGreeting() {
+            const greetingElement = document.getElementById('aiGreetingText');
+            if (!greetingElement) return;
+
+            const hour = new Date().getHours();
+            let greeting;
+
+            if (hour < 6) {
+                greeting = '"สวัสดีครับ นอนดึกจังเลยนะครับ มาฝึกภาษากันเถอะ"';
+            } else if (hour < 12) {
+                greeting = '"สวัสดีตอนเช้าครับ! พร้อมเริ่มต้นเรียนภาษาใหม่หรือยังครับ?"';
+            } else if (hour < 18) {
+                greeting = '"สวัสดีตอนบ่ายครับ! พักผ่อนสายตาแล้วมาแชทกับ AI ไหมครับ?"';
+            } else {
+                greeting = '"สวัสดีตอนเย็นครับ! ได้เวลาฝึกภาษาแสนสนุกก่อนนอนแล้วครับ"';
+            }
+
+            greetingElement.textContent = greeting;
+        }
+
+        // Back to Top
+        const backToTopBtn = document.querySelector('.back-to-top');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 400) {
+                backToTopBtn.classList.add('show');
+            } else {
+                backToTopBtn.classList.remove('show');
+            }
+        });
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Theme Toggle
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            const themeToggle = document.querySelector('.theme-toggle i');
+
+            html.setAttribute('data-theme', newTheme);
+            themeToggle.className = newTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon';
+
+            // Save theme preference
+            localStorage.setItem('theme', newTheme);
+        }
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        document.querySelector('.theme-toggle i').className = savedTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon';
+
+        // Donate Popup
+        function showDonatePopup() {
+            const donateUrl = 'https://tipme.in.th/ryusosense';
+
+            // Create fancy animation before showing popup
+            const heart = document.createElement('div');
+            heart.innerHTML = '<i class="bi bi-heart-fill" style="color: #ff0000; font-size: 2rem;"></i>';
+            heart.style.position = 'fixed';
+            heart.style.top = '50%';
+            heart.style.left = '50%';
+            heart.style.transform = 'translate(-50%, -50%) scale(0)';
+            heart.style.zIndex = '9999';
+            heart.style.pointerEvents = 'none';
+            document.body.appendChild(heart);
+
+            // Animate heart
+            setTimeout(() => {
+                heart.style.transition = 'all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+                heart.style.transform = 'translate(-50%, -50%) scale(3)';
+                heart.style.opacity = '1';
+            }, 10);
+
+            setTimeout(() => {
+                heart.style.opacity = '0';
+                heart.style.transform = 'translate(-50%, -50%) scale(0)';
+                setTimeout(() => heart.remove(), 500);
+            }, 500);
+
+            // Show popup after animation
+            setTimeout(() => {
+                Swal.fire({
+                    title: '<div class="text-gradient-bw">สนับสนุน Arai Go GU</div>',
+                    html: `
+                        <div class="text-center">
+                            <div class="mb-4">
+                                <i class="bi bi-heart-fill text-danger" style="font-size: 3rem;"></i>
+                            </div>
+                            <p class="text-muted mb-4">สแกน QR Code เพื่อสนับสนุนเว็บไซต์ให้เราพัฒนาต่อไป</p>
+                            
+                            <div class="my-4 p-4 bg-light rounded-4 border">
+                                <div id="qrcode" class="d-inline-block"></div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-center gap-3 mb-4">
+                                <div class="text-center">
+                                    <div class="fs-4 fw-bold">50</div>
+                                    <div class="text-muted small">บาท</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="fs-4 fw-bold">100</div>
+                                    <div class="text-muted small">บาท</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="fs-4 fw-bold">500</div>
+                                    <div class="text-muted small">บาท</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <a href="${donateUrl}" target="_blank" class="btn btn-black px-5 py-2">
+                                    ไปยังหน้าสนับสนุน <i class="bi bi-box-arrow-up-right ms-2"></i>
+                                </a>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <p class="text-muted small mb-0">ขอบคุณสำหรับการสนับสนุนทุกท่าน! ❤️</p>
+                            </div>
+                        </div>
+                    `,
+                    showConfirmButton: false,
+                    showCloseButton: true,
+                    width: '500px',
+                    padding: '2rem',
+                    didOpen: () => {
+                        const qr = qrcode(0, 'L');
+                        qr.addData(donateUrl);
+                        qr.make();
+                        document.getElementById('qrcode').innerHTML = qr.createImgTag(6);
+                    }
+                });
+            }, 600);
+        }
+
+        // Initialize coin animation
+        function initCoinAnimation() {
+            const coins = document.querySelectorAll('.coin');
+            coins.forEach((coin, index) => {
+                coin.style.animationDelay = `${index * 0.3}s`;
+            });
+        }
+
+        // Course enrollment popup
+        function showCourseEnrollment() {
+            Swal.fire({
+                title: '<div class="text-gradient-bw">สมัครคอร์สเรียน</div>',
+                html: `
+                    <div class="text-center">
+                        <div class="mb-4">
+                            <i class="bi bi-mortarboard-fill" style="font-size: 3rem; color: #000;"></i>
+                        </div>
+                        <p class="text-muted mb-4">กรุณากรอกข้อมูลเพื่อสมัครคอร์สเรียน</p>
+                        
+                        <div class="mb-3">
+                            <input type="text" class="form-control" placeholder="ชื่อ-สกุล" id="enrollmentName">
+                        </div>
+                        <div class="mb-3">
+                            <input type="email" class="form-control" placeholder="อีเมล" id="enrollmentEmail">
+                        </div>
+                        <div class="mb-3">
+                            <input type="tel" class="form-control" placeholder="เบอร์โทรศัพท์" id="enrollmentPhone">
+                        </div>
+                        
+                        <div class="mt-4">
+                            <button class="btn btn-black w-100 py-3" onclick="submitEnrollment()">
+                                ส่งใบสมัคร <i class="bi bi-send ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                `,
+                showConfirmButton: false,
+                showCloseButton: true,
+                width: '500px',
+                padding: '2rem'
+            });
+        }
+
+        function submitEnrollment() {
+            const name = document.getElementById('enrollmentName').value;
+            const email = document.getElementById('enrollmentEmail').value;
+            const phone = document.getElementById('enrollmentPhone').value;
+
+            if (!name || !email || !phone) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'กรุณากรอกข้อมูลให้ครบถ้วน',
+                    text: 'โปรดตรวจสอบข้อมูลอีกครั้ง',
+                    confirmButtonColor: '#000'
+                });
+                return;
+            }
+
+            Swal.fire({
+                icon: 'success',
+                title: 'สมัครสำเร็จ!',
+                text: 'ทีมงานจะติดต่อกลับภายใน 24 ชั่วโมง',
+                confirmButtonColor: '#000'
+            });
+        }
+
+        // Run functions
+        updateGreeting();
+        initCoinAnimation();
+
+        // Scroll animations
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const rate = scrolled * -0.5;
+
+            const supportBubbles = document.querySelectorAll('.support-bubble');
+            supportBubbles.forEach((bubble, index) => {
+                const speed = 0.3 + (index * 0.1);
+                bubble.style.transform = `translateY(${rate * speed}px)`;
+            });
+        });
+    </script>
+</body>
+
+</html>

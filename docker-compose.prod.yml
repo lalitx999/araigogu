@@ -1,0 +1,93 @@
+# Production stack: Caddy (HTTPS) -> web (gunicorn) -> ai-service ; MySQL is NOT published.
+# Usage on the server:  docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  ai-service:
+    build: ./ai-service
+    restart: unless-stopped
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8001 --workers 2
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      AI_INTERNAL_TOKEN: ${AI_INTERNAL_TOKEN}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8001/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: ./web
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      ai-service:
+        condition: service_healthy
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DJANGO_DEBUG: "0"
+      DJANGO_ALLOWED_HOSTS: ${DOMAIN}
+      DJANGO_CSRF_TRUSTED_ORIGINS: https://${DOMAIN}
+      DJANGO_BEHIND_PROXY: "1"
+      DJANGO_SSL_REDIRECT: "0"   # Caddy already redirects http -> https
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: db
+      DB_PORT: 3306
+      AI_SERVICE_URL: http://ai-service:8001
+      AI_INTERNAL_TOKEN: ${AI_INTERNAL_TOKEN}
+      AI_DAILY_CHAT_LIMIT: ${AI_DAILY_CHAT_LIMIT:-100}
+      EMAIL_BACKEND: ${EMAIL_BACKEND:-django.core.mail.backends.smtp.EmailBackend}
+      EMAIL_HOST: ${EMAIL_HOST:-}
+      EMAIL_PORT: ${EMAIL_PORT:-587}
+      EMAIL_HOST_USER: ${EMAIL_HOST_USER:-}
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD:-}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-Arai Go Gu <noreply@localhost>}
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py createcachetable &&
+             python manage.py collectstatic --noinput &&
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --access-logfile -"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8000/healthz')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - web
+    environment:
+      DOMAIN: ${DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  db_data:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,112 @@
+{% load static humanize ryu %}<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>ค้นหา | Ryu Community</title>
+    <link rel="icon" href="{% static 'img/ryupro.ico' %}">
+
+    <!-- Bootstrap 5 + Icons + fonts: all served locally (no CDN) -->
+    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pages/search.css' %}">
+</head>
+
+<body>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="d-none">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="search-container">
+        <!-- Search Bar -->
+        <div class="search-bar-wrap">
+            <form action="{% url 'community:search' %}" method="GET">
+                <div class="search-input-group">
+                    <i class="bi bi-search text-muted"></i>
+                    <input type="text" name="q" placeholder="ค้นหาเพื่อนหรือเรื่องราว..."
+                        value="{{ query }}">
+                </div>
+            </form>
+        </div>
+
+        {% if users %}
+        <div class="section-title">ผลการค้นหา</div>
+        {% for u in users %}
+        <a href="{% url 'community:profile' u.id %}"
+            class="user-suggest-card text-decoration-none text-dark">
+            <img src="{{ u.avatar_url }}" class="user-avatar" alt="User">
+            <div class="flex-grow-1">
+                <div class="fw-700">
+                    {{ u.full_name }}
+                </div>
+                <div class="text-muted small">@
+                    {{ u.full_name|handle }}
+                </div>
+            </div>
+            <button class="btn btn-dark btn-sm rounded-pill px-3">Follow</button>
+        </a>
+        {% endfor %}
+        {% endif %}
+
+        <!-- Trends -->
+        <div class="section-title">เทรนด์สำหรับคุณ</div>
+        {% for trend in trends %}
+        <a href="#" class="trend-item">
+            <div class="trend-category">Trending in Archetypes</div>
+            <div class="trend-title">#
+                {{ trend.name }}
+            </div>
+            <div class="x-small text-muted">
+                {{ trend.count|intcomma }} Posts
+            </div>
+        </a>
+        {% endfor %}
+
+        <!-- Suggestions -->
+        <div class="section-title">ใครที่ควรติดตาม</div>
+        {% for sug in suggestions %}
+        <div class="user-suggest-card">
+            <img src="{{ sug.avatar_url }}" class="user-avatar" alt="User">
+            <div class="flex-grow-1">
+                <div class="fw-700">
+                    {{ sug.full_name }}
+                </div>
+                <div class="text-muted small">@
+                    {{ sug.full_name|handle }}
+                </div>
+            </div>
+            <button class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-700">Follow</button>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav">
+        <a href="{% url 'community:feed' %}" class="nav-item">
+            <i class="bi bi-house-door fs-4"></i>
+            <span class="nav-label">Home</span>
+        </a>
+        <a href="{% url 'community:search' %}" class="nav-item active">
+            <i class="bi bi-search fs-4"></i>
+            <span class="nav-label">Explore</span>
+        </a>
+        <a href="{% url 'community:profile' user.pk %}" class="nav-item">
+            <i class="bi bi-person fs-4"></i>
+            <span class="nav-label">Profile</span>
+        </a>
+    </nav>
+
+    <script>
+        function showLoading(show) {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.toggle('d-none', !show);
+            overlay.classList.toggle('d-flex', show);
+        }
+    </script>
+</body>
+
+</html>

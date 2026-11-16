@@ -1,0 +1,595 @@
+{% load static humanize %}<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>แดชบอร์ด | ARAI GO GU</title>
+    <link rel="icon" href="{% static 'img/ryupro.ico' %}">
+
+    <!-- Bootstrap 5 + Icons + fonts: all served locally (no CDN) -->
+    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
+    <link href="{% static 'vendor/aos/aos.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/pages/dashboard.css' %}">
+</head>
+
+<body>
+    <!-- Modern Navbar -->
+    <nav class="navbar modern-navbar">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <i class="bi bi-translate"></i>
+                <span>ARAI GO GU</span>
+            </a>
+
+            <div class="user-menu-wrapper">
+                <div class="user-avatar">
+                    {{ user.full_name|slice:':1' }}
+                </div>
+
+                <span class="user-name d-none d-md-inline">
+                    {{ user.full_name }}
+                </span>
+
+                <div class="dropdown">
+                    <button class="user-dropdown-btn" data-bs-toggle="dropdown">
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                    <ul class="dropdown-menu user-dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" href="{% url 'community:profile' user.pk %}">
+                                <i class="bi bi-person"></i>
+                                <span>โปรไฟล์ของฉัน</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'community:feed' %}">
+                                <i class="bi bi-people"></i>
+                                <span>ชุมชน</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'accounts:edit_profile' %}">
+                                <i class="bi bi-gear"></i>
+                                <span>ตั้งค่า</span>
+                            </a>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span>ออกจากระบบ</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <!-- Hero Header -->
+        <div class="dashboard-hero fade-in">
+            <div class="welcome-badge" data-name="{{ user.full_name }}">
+                สวัสดี,
+                {{ user.full_name }}! 👋
+            </div>
+            <h1 class="dashboard-title">แดชบอร์ดการเรียนรู้</h1>
+            <p class="dashboard-subtitle">
+                พื้นที่ส่วนตัวของคุณสำหรับพัฒนาทักษะภาษากับ AI ผู้ช่วยที่พร้อมสอนคุณ 24 ชั่วโมง
+            </p>
+            <div class="ai-assistant">
+                <i class="bi bi-stars"></i>
+                <span>พี่ริวพร้อมช่วยเหลือคุณเสมอ!</span>
+            </div>
+        </div>
+
+        <!-- Features Header -->
+        <div class="features-header fade-in" data-aos="fade-up">
+            <h2 class="features-title">เริ่มต้นการเรียนรู้</h2>
+            <p class="features-subtitle">
+                เลือกฟีเจอร์ที่คุณต้องการใช้งาน เพื่อเริ่มต้นพัฒนาทักษะภาษา
+            </p>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="features-grid" data-aos="fade-up" data-aos-delay="100">
+            <!-- Create Chat -->
+            <div class="feature-card" onclick="showNewChatModal()">
+                <div class="feature-icon">
+                    <i class="bi bi-plus-lg"></i>
+                </div>
+                <h3 class="feature-title">สร้างการสนทนาใหม่</h3>
+                <p class="feature-description">
+                    เริ่มสนทนากับ AI ครูสอนภาษาส่วนตัวของคุณ พูดคุยได้ทุกหัวข้อในภาษาที่คุณต้องการเรียน
+                </p>
+                <div class="feature-stats">
+                    <span class="count">เริ่มเลยตอนนี้!</span>
+                </div>
+            </div>
+
+            <!-- Community -->
+            <div class="feature-card" onclick="location.href='{% url 'community:feed' %}'">
+                <div class="feature-badge">ใหม่!</div>
+                <div class="feature-icon">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <h3 class="feature-title">ชุมชน RYU</h3>
+                <p class="feature-description">
+                    เข้าร่วมชุมชนผู้เรียนภาษา พบปะแลกเปลี่ยนความรู้ และโพสต์แบ่งปันประสบการณ์
+                </p>
+                <div class="feature-stats">
+                    <span class="count">ร่วมชุมชน</span> เพื่อพบกับเพื่อนใหม่
+                </div>
+            </div>
+
+            <!-- Progress -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <h3 class="feature-title">ติดตามความก้าวหน้า</h3>
+                <p class="feature-description">
+                    ดูสถิติและความก้าวหน้าของคุณ วัดผลการเรียนภาษาและตั้งเป้าหมายใหม่ๆ
+                </p>
+                <div class="feature-stats">
+                    <span class="count">
+                        {{ chat_count }} การสนทนา
+                    </span> สำเร็จแล้ว
+                </div>
+            </div>
+
+            <!-- Support -->
+            <div class="feature-card" onclick="showSupportPopup()">
+                <div class="feature-icon">
+                    <i class="bi bi-heart-fill"></i>
+                </div>
+                <h3 class="feature-title">สนับสนุนเรา</h3>
+                <p class="feature-description">
+                    ช่วยเราพัฒนาและเพิ่มฟีเจอร์ใหม่ๆ เพื่อประสบการณ์การเรียนรู้ที่ดีขึ้น
+                </p>
+                <div class="feature-stats">
+                    <span class="count">ร่วมสนับสนุน</span> เพื่ออนาคตที่ดียิ่งขึ้น
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Chats Section -->
+        <div class="slide-up" data-aos="fade-up" data-aos-delay="200">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="bi bi-clock-history"></i>
+                    การสนทนาล่าสุด
+                </h2>
+                <a href="{% url 'dashboard' %}" class="view-all-btn">
+                    <i class="bi bi-list-ul"></i>
+                    ดูทั้งหมด
+                </a>
+            </div>
+
+            {% if not recent_chats %}
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="bi bi-chat-left-dots"></i>
+                </div>
+                <h3 class="empty-title">ยังไม่มีการสนทนา</h3>
+                <p class="empty-description">
+                    เริ่มต้นการเดินทางเรียนภาษาของคุณด้วยการสร้างการสนทนาแรกกับ AI ครูสอนภาษาที่สุดยอด!
+                </p>
+                <button class="empty-action-btn" onclick="showNewChatModal()">
+                    <i class="bi bi-plus-lg"></i>
+                    สร้างการสนทนาแรก
+                </button>
+            </div>
+            {% else %}
+            <div class="chat-list">
+                {% for chat in recent_chats %}
+                <div class="chat-item" onclick="location.href='{% url 'chat:detail' chat.id %}'"
+                    data-aos="fade-up" data-aos-delay="{{ chat.aos_delay }}">
+                    <div class="chat-header">
+                        <h4 class="chat-title">
+                            {{ chat.title|default:'การสนทนาใหม่' }}
+                        </h4>
+                        <span class="chat-language">
+                            {{ chat.language|upper }}
+                        </span>
+                    </div>
+                    <div class="chat-meta">
+                        <div class="chat-info">
+                            <span class="chat-info-item">
+                                <i class="bi bi-clock"></i>
+                                {{ chat.formatted_time }}
+                            </span>
+                            <span class="chat-info-item">
+                                <i class="bi bi-chat-left-text"></i>
+                                {{ chat.message_count }} ข้อความ
+                            </span>
+                        </div>
+                        <span class="chat-difficulty">
+                            {{ chat.difficulty|capfirst }}
+                        </span>
+                    </div>
+                    <div class="chat-progress">
+                        <div class="chat-progress-bar"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <!-- Create Chat Modal -->
+    <div class="modal fade modern-modal" id="newChatModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">สร้างการสนทนาใหม่</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createChatForm" action="{% url 'chat:create' %}" method="POST">
+                        {% csrf_token %}
+                        <div class="form-group mb-4">
+                            <label class="form-label">ชื่อการสนทนา</label>
+                            <input type="text" name="title" class="form-input"
+                                placeholder="ตัวอย่าง: ฝึกภาษาอังกฤษวันนี้"
+                                value="{{ user.full_name }} - {% now "d/m/Y" %}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">เลือกภาษา</label>
+                            <div class="language-search-wrapper">
+                                <i class="bi bi-search"></i>
+                                <input type="text" id="langSearch" class="form-input" placeholder="ค้นหาภาษา..."
+                                    autocomplete="off">
+                            </div>
+                            <div class="language-list">
+                                {% for lang in languages %}
+                                <div class="language-item" data-code="{{ lang.code }}"
+                                    onclick="selectLanguage('{{ lang.code }}', this)">
+                                    <span class="language-name">
+                                        <span class="me-2">
+                                            {{ lang.flag }}
+                                        </span>
+                                        {{ lang.name }}
+                                        {% if lang.native_name %}
+                                        <span class="text-muted ms-2">(
+                                            {{ lang.native_name }})
+                                        </span>
+                                        {% endif %}
+                                    </span>
+                                    <span class="language-code">
+                                        {{ lang.code|upper }}
+                                    </span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <input type="hidden" name="language" id="selectedLang" value="en" required>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label class="form-label">เป้าหมายการเรียนรู้</label>
+                            <textarea name="learning_goal" class="form-input" rows="2"
+                                placeholder="เช่น: อยากฝึกพูดสั่งอาหาร, อยากสอบผ่าน N3, อยากคุยกับเพื่อนคนญี่ปุ่น"></textarea>
+                        </div>
+
+                        <div class="form-group" id="standardDifficultyGroup">
+                            <label class="form-label">เลือกระดับความยาก</label>
+                            <select name="difficulty" class="form-input" id="standardDifficulty">
+                                <option value="beginner">ระดับเริ่มต้น (Beginner)</option>
+                                <option value="intermediate">ระดับกลาง (Intermediate)</option>
+                                <option value="advanced">ระดับสูง (Advanced)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group d-none" id="japaneseLevelGroup">
+                            <label class="form-label">เลือกระดับ JLPT</label>
+                            <select name="jp_level" class="form-input" id="japaneseLevel">
+                                <option value="n5">N5 (พื้นฐานสุด)</option>
+                                <option value="n4">N4 (พื้นฐาน)</option>
+                                <option value="n3">N3 (กลาง)</option>
+                                <option value="n2">N2 (สูง)</option>
+                                <option value="n1">N1 (เชี่ยวชาญ)</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="submit-btn">
+                            <i class="bi bi-plus-lg me-2"></i>
+                            สร้างการสนทนา
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="modern-footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <i class="bi bi-translate"></i>
+                ARAI GO GU
+            </div>
+            <p class="footer-text">
+                แพลตฟอร์มเรียนภาษาที่ทันสมัย ด้วย AI ผู้ช่วยส่วนตัว<br>
+                &copy; 2025 ARAI GO GU • เวอร์ชั่น 2.0
+            </p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'vendor/sweetalert2/sweetalert2.all.min.js' %}"></script>
+    <script src="{% static 'vendor/aos/aos.js' %}"></script>
+    <script src="{% static 'vendor/qrcode/qrcode.js' %}"></script>
+
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 600,
+            once: true,
+            offset: 50
+        });
+
+        // Show New Chat Modal
+        function showNewChatModal() {
+            const modal = new bootstrap.Modal(document.getElementById('newChatModal'));
+            modal.show();
+
+            // Focus on search input
+            setTimeout(() => {
+                const searchInput = document.getElementById('langSearch');
+                if (searchInput) {
+                    searchInput.focus();
+                }
+            }, 300);
+        }
+
+        // Select Language
+        function selectLanguage(code, element) {
+            // Remove selection from all items
+            document.querySelectorAll('.language-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+
+            // Add selection to clicked item
+            element.classList.add('selected');
+            document.getElementById('selectedLang').value = code;
+
+            // Toggle difficulty/level groups
+            const standardGroup = document.getElementById('standardDifficultyGroup');
+            const jpGroup = document.getElementById('japaneseLevelGroup');
+
+            if (code === 'ja') {
+                standardGroup.classList.add('d-none');
+                jpGroup.classList.remove('d-none');
+                document.getElementById('standardDifficulty').removeAttribute('required');
+                document.getElementById('japaneseLevel').setAttribute('required', 'required');
+            } else {
+                standardGroup.classList.remove('d-none');
+                jpGroup.classList.add('d-none');
+                document.getElementById('japaneseLevel').removeAttribute('required');
+                document.getElementById('standardDifficulty').setAttribute('required', 'required');
+            }
+
+            // Scroll to selected item
+            element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Language Search
+        document.getElementById('langSearch')?.addEventListener('input', function (e) {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const languageItems = document.querySelectorAll('.language-item');
+
+            languageItems.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                const isVisible = text.includes(searchTerm);
+                item.style.display = isVisible ? 'flex' : 'none';
+
+                // Show some popular languages if search is empty
+                if (!searchTerm) {
+                    const popularCodes = ['en', 'th', 'ja', 'ko', 'zh', 'fr', 'de', 'es'];
+                    const itemCode = item.getAttribute('data-code');
+                    if (popularCodes.includes(itemCode)) {
+                        item.style.display = 'flex';
+                    }
+                }
+            });
+        });
+
+        // Support Popup
+        function showSupportPopup() {
+            const url = 'https://tipme.in.th/ryusosense';
+
+            Swal.fire({
+                title: 'สนับสนุนพวกเรา',
+                html: `
+                    <div style="text-align: center; padding: 20px 0;">
+                        <div style="font-size: 4rem; margin-bottom: 20px; color: #ff4757;">
+                            <i class="bi bi-heart-pulse"></i>
+                        </div>
+                        <h3 style="margin-bottom: 16px; color: #1a1a1a; font-family: 'Kanit', sans-serif;">
+                            ขอบคุณที่สนับสนุน ARAI GO GU
+                        </h3>
+                        <p style="margin-bottom: 24px; color: #666; line-height: 1.6;">
+                            การสนับสนุนจากคุณจะช่วยให้เราพัฒนาแพลตฟอร์มให้ดียิ่งขึ้น<br>
+                            เพิ่มฟีเจอร์ใหม่ๆ และรักษาบริการฟรีสำหรับทุกคน
+                        </p>
+                        <div style="margin-bottom: 32px;">
+                            <div id="qrcode" style="padding: 20px; background: #fff; border: 2px solid #eee; border-radius: 16px; display: inline-block; margin-bottom: 16px;"></div>
+                            <p style="color: #999; font-size: 0.9rem; margin-bottom: 8px;">
+                                สแกน QR Code เพื่อสนับสนุน
+                            </p>
+                        </div>
+                        <a href="${url}" target="_blank" 
+                           style="display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #000000 0%, #333333 100%); color: #fff; padding: 14px 40px; border-radius: 12px; text-decoration: none; font-weight: 600; font-family: 'Kanit', sans-serif; transition: all 0.3s;">
+                            <i class="bi bi-heart-fill"></i>
+                            สนับสนุนผ่าน Tipme
+                        </a>
+                        <p style="margin-top: 24px; color: #999; font-size: 0.85rem;">
+                            ทุกการสนับสนุนมีความหมายกับเรา ❤️
+                        </p>
+                    </div>
+                `,
+                showConfirmButton: false,
+                showCloseButton: true,
+                width: '520px',
+                customClass: {
+                    popup: 'rounded-lg',
+                    closeButton: 'btn-close'
+                },
+                didOpen: () => {
+                    // Generate QR Code
+                    const qr = qrcode(0, 'L');
+                    qr.addData(url);
+                    qr.make();
+                    document.getElementById('qrcode').innerHTML = qr.createImgTag(5, 0);
+                }
+            });
+        }
+
+        // Form Validation
+        document.getElementById('createChatForm')?.addEventListener('submit', function (e) {
+            const lang = document.getElementById('selectedLang').value;
+            const title = this.querySelector('input[name="title"]').value.trim();
+
+            if (!lang || !title) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'ข้อมูลไม่ครบถ้วน',
+                    text: 'กรุณาเลือกภาษาและตั้งชื่อการสนทนาก่อน',
+                    confirmButtonText: 'ตกลง',
+                    customClass: {
+                        popup: 'rounded-lg'
+                    }
+                });
+            }
+        });
+
+        // Progress bar animation on hover
+        document.querySelectorAll('.chat-item').forEach(item => {
+            const progressBar = item.querySelector('.chat-progress-bar');
+            if (progressBar) {
+                item.addEventListener('mouseenter', () => {
+                    progressBar.style.width = '65%';
+                });
+
+                item.addEventListener('mouseleave', () => {
+                    setTimeout(() => {
+                        progressBar.style.width = '40%';
+                    }, 200);
+                });
+            }
+        });
+
+        // Keyboard shortcut for creating new chat (Ctrl/Cmd + N)
+        document.addEventListener('keydown', function (e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                e.preventDefault();
+                showNewChatModal();
+            }
+        });
+
+        // Add ripple effect to buttons
+        document.querySelectorAll('.feature-card, .chat-item, .view-all-btn, .empty-action-btn').forEach(button => {
+            button.addEventListener('click', function (e) {
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+
+                ripple.style.cssText = `
+                    position: absolute;
+                    border-radius: 50%;
+                    background: rgba(0, 0, 0, 0.1);
+                    transform: scale(0);
+                    animation: ripple 0.6s linear;
+                    width: ${size}px;
+                    height: ${size}px;
+                    top: ${y}px;
+                    left: ${x}px;
+                    pointer-events: none;
+                    z-index: 1;
+                `;
+
+                this.appendChild(ripple);
+
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        });
+
+        // Add ripple animation to CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Update time dynamically
+        function updateTime() {
+            const now = new Date();
+            const options = {
+                hour: '2-digit',
+                minute: '2-digit',
+                timeZone: 'Asia/Bangkok'
+            };
+            const timeString = now.toLocaleTimeString('th-TH', options);
+
+            // Update AI assistant message
+            const aiMessage = document.querySelector('.ai-assistant span');
+            if (aiMessage) {
+                const hour = now.getHours();
+                let message = 'พี่ริวพร้อมช่วยเหลือคุณเสมอ!';
+
+                if (hour < 12) {
+                    message = 'สวัสดีตอนเช้า! มาเริ่มเรียนภาษากัน';
+                } else if (hour < 18) {
+                    message = 'สวัสดีตอนบ่าย! วันนี้เรียนภาษาอะไรดี?';
+                } else {
+                    message = 'สวัสดีตอนเย็น! ได้เวลาฝึกภาษาแล้ว';
+                }
+
+                aiMessage.textContent = message;
+            }
+        }
+
+        // Update time every minute
+        updateTime();
+        setInterval(updateTime, 60000);
+
+        // Add greeting based on time of day
+        const greetingBadge = document.querySelector('.welcome-badge');
+        if (greetingBadge) {
+            const hour = new Date().getHours();
+            let greeting = 'สวัสดี';
+
+            if (hour < 12) {
+                greeting = 'สวัสดีตอนเช้า';
+            } else if (hour < 18) {
+                greeting = 'สวัสดีตอนบ่าย';
+            } else {
+                greeting = 'สวัสดีตอนเย็น';
+            }
+
+            greetingBadge.textContent = `${greeting}, ${greetingBadge.dataset.name}! 👋`;
+        }
+    </script>
+</body>
+
+</html>
